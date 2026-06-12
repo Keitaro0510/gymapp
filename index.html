@@ -214,17 +214,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
     <div style="font-size:13px;color:var(--text2);margin-bottom:12px" id="log-date"></div>
     <div style="margin-bottom:10px">
       <label class="lbl">種目</label>
-      <select id="ex-sel">
-        <option>ベンチプレス</option><option>スクワット</option><option>デッドリフト</option>
-        <option>ショルダープレス</option><option>ラットプルダウン</option><option>バーベルロウ</option>
-        <option>ダンベルカール</option><option>トライセプスプレス</option><option>レッグプレス</option>
-        <option>チェストフライ</option><option>インクラインプレス</option><option>ケーブルクロス</option>
-        <option value="__custom">＋ カスタム入力</option>
-      </select>
-    </div>
-    <div id="custom-wrap" style="display:none;margin-bottom:10px">
-      <label class="lbl">種目名</label>
-      <input type="text" id="custom-in" placeholder="例: ケーブルロウ">
+      <select id="ex-sel"></select>
     </div>
     <div class="row3" style="margin-bottom:10px">
       <div><label class="lbl">重量 (kg)</label><input type="number" id="w-kg" placeholder="60" step="0.5" min="0" inputmode="decimal"></div>
@@ -300,6 +290,18 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   <div id="hist-list"></div>
 </div>
 
+<!-- EXERCISES -->
+<div class="section" id="sec-ex">
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:10px">種目を追加</div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="new-ex-input" placeholder="例: ケーブルロウ" style="flex:1">
+      <button class="btn btn-primary" onclick="addEx()">追加</button>
+    </div>
+  </div>
+  <div id="ex-list"></div>
+</div>
+
 <!-- STATS -->
 <div class="section" id="sec-stats">
   <div class="stat-grid" id="stats-top"></div>
@@ -321,6 +323,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   <button class="nav-item" onclick="showTab('timer',this)"><span class="icon">⏱</span><span>タイマー</span></button>
   <button class="nav-item" onclick="showTab('cal',this)"><span class="icon">📅</span><span>カレンダー</span></button>
   <button class="nav-item" onclick="showTab('hist',this)"><span class="icon">📋</span><span>履歴</span></button>
+  <button class="nav-item" onclick="showTab('ex',this)"><span class="icon">⚙️</span><span>種目</span></button>
   <button class="nav-item" onclick="showTab('stats',this)"><span class="icon">📊</span><span>統計</span></button>
 </nav>
 
@@ -334,12 +337,64 @@ let tDur = 90, tRem = 90, tRunning = false, tIv = null;
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
 const now = new Date();
 
+const DEFAULT_EX = ['ベンチプレス','スクワット','デッドリフト','ショルダープレス','ラットプルダウン','バーベルロウ','ダンベルカール','トライセプスプレス','レッグプレス','チェストフライ','インクラインプレス','ケーブルクロス'];
+let exercises = JSON.parse(localStorage.getItem('gw_ex') || 'null') || [...DEFAULT_EX];
+
+function saveEx() { localStorage.setItem('gw_ex', JSON.stringify(exercises)); }
+
+function renderExSelect() {
+  const sel = document.getElementById('ex-sel');
+  const cur = sel.value;
+  sel.innerHTML = exercises.map(e => `<option${e===cur?' selected':''}>${e}</option>`).join('');
+}
+
+function renderExList() {
+  const c = document.getElementById('ex-list');
+  if (!exercises.length) { c.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text2);font-size:14px">種目がありません</div>'; return; }
+  c.innerHTML = `<div class="card">${exercises.map((e,i) => `
+    <div class="set-row">
+      <span style="flex:1;font-size:14px">${e}</span>
+      <button class="btn btn-sm" onclick="moveEx(${i},-1)" ${i===0?'disabled':''} style="padding:4px 8px">↑</button>
+      <button class="btn btn-sm" onclick="moveEx(${i},1)" ${i===exercises.length-1?'disabled':''} style="padding:4px 8px">↓</button>
+      <button class="btn btn-sm btn-danger" onclick="delEx(${i})">✕</button>
+    </div>`).join('')}</div>`;
+}
+
+function addEx() {
+  const inp = document.getElementById('new-ex-input');
+  const name = inp.value.trim();
+  if (!name) { toast('種目名を入力してください'); return; }
+  if (exercises.includes(name)) { toast('すでに登録されています'); return; }
+  exercises.push(name);
+  saveEx(); renderExSelect(); renderExList();
+  inp.value = '';
+  toast(`「${name}」を追加しました`);
+}
+
+function delEx(i) {
+  if (!confirm(`「${exercises[i]}」を削除しますか？\n（過去の記録は残ります）`)) return;
+  exercises.splice(i, 1);
+  saveEx(); renderExSelect(); renderExList();
+}
+
+function moveEx(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= exercises.length) return;
+  [exercises[i], exercises[j]] = [exercises[j], exercises[i]];
+  saveEx(); renderExSelect(); renderExList();
+}
+
+// init
+renderExSelect();
+renderExList();
+
 // ── Tabs ──
 function showTab(name, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
   el.classList.add('active');
+  if (name === 'ex') renderExList();
   if (name === 'cal') renderCal();
   if (name === 'hist') renderHist();
   if (name === 'stats') renderStats();
@@ -347,13 +402,9 @@ function showTab(name, el) {
 
 // ── Log ──
 document.getElementById('log-date').textContent = now.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
-document.getElementById('ex-sel').addEventListener('change', function(){
-  document.getElementById('custom-wrap').style.display = this.value === '__custom' ? 'block' : 'none';
-});
 
 function exName() {
-  const v = document.getElementById('ex-sel').value;
-  return v === '__custom' ? (document.getElementById('custom-in').value.trim() || 'カスタム') : v;
+  return document.getElementById('ex-sel').value || 'カスタム';
 }
 
 function addSet() {
