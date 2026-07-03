@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="筋トレ">
-<meta name="theme-color" content="#1a1a1a">
+<meta name="theme-color" content="#D6302C">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>筋トレ記録</title>
@@ -19,12 +19,16 @@
   --text2: #666;
   --border: rgba(0,0,0,0.1);
   --border2: rgba(0,0,0,0.2);
-  --green: #1D9E75;
-  --green-bg: #E1F5EE;
-  --green-text: #0F6E56;
+  --green: #D6302C;
+  --green-bg: #FCE7E6;
+  --green-text: #B4211D;
   --blue: #378ADD;
   --red: #E24B4A;
   --amber: #BA7517;
+  --accent: #D6302C;
+  --accent-dark: #AD2420;
+  --accent-bg: #FCE7E6;
+  --accent-text: #B4211D;
   --radius: 10px;
   --radius-lg: 14px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -39,8 +43,13 @@
     --text2: #999;
     --border: rgba(255,255,255,0.1);
     --border2: rgba(255,255,255,0.2);
-    --green-bg: #0a3328;
-    --green-text: #5DCAA5;
+    --green: #E4413D;
+    --green-bg: #3A1616;
+    --green-text: #FF7A76;
+    --accent: #E4413D;
+    --accent-dark: #C22824;
+    --accent-bg: #3A1616;
+    --accent-text: #FF7A76;
   }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -50,11 +59,11 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 /* Header */
 .header {
   background: var(--bg);
-  border-bottom: 0.5px solid var(--border);
+  border-bottom: 2px solid var(--accent);
   padding: calc(var(--safe-top) + 14px) 16px 14px;
   flex-shrink: 0;
 }
-.header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+.header h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.3px; color: var(--accent); }
 
 /* Scrollable content */
 .content { flex: 1; overflow-y: auto; padding: 0 0 calc(var(--safe-bottom) + 72px); -webkit-overflow-scrolling: touch; }
@@ -76,7 +85,7 @@ body { display: flex; flex-direction: column; overflow: hidden; }
   padding: 8px 0; cursor: pointer; color: var(--text2); font-size: 11px; gap: 3px; border: none; background: none;
 }
 .nav-item .icon { font-size: 22px; }
-.nav-item.active { color: var(--text); }
+.nav-item.active { color: var(--accent); }
 .nav-item.active .icon { font-weight: 600; }
 
 /* Cards */
@@ -120,7 +129,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   font-family: inherit;
 }
 .btn:active { opacity: .7; }
-.btn-primary { background: var(--text); color: var(--bg); border-color: transparent; }
+.btn-primary { background: var(--accent); color: #fff; border-color: transparent; }
 .btn-block { width: 100%; }
 .btn-sm { padding: 6px 12px; font-size: 14px; }
 .btn-danger { color: var(--red); border-color: rgba(226,75,74,0.3); }
@@ -139,32 +148,43 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .preset-btn:active { opacity: .7; }
 
 /* Calendar */
-.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.cal-title { font-size: 16px; font-weight: 600; }
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.cal-title { font-size: 25px; font-weight: 800; letter-spacing: -0.5px; color: var(--accent); }
 .cal-nav { padding: 6px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg2); color: var(--text); font-size: 18px; cursor: pointer; }
-.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 8px; }
-.day-lbl { text-align: center; font-size: 12px; color: var(--text2); padding: 4px 0; }
-.day-lbl.sun { color: var(--red); }
-.day-lbl.sat { color: var(--blue); }
-.day-cell { min-height: 52px; border: 0.5px solid var(--border); border-radius: 8px; padding: 5px; cursor: pointer; background: var(--bg); position: relative; }
-.day-cell.other { opacity: .3; }
-.day-cell.has-w { border-color: var(--green); }
-.day-cell.today .dn { background: var(--text); color: var(--bg); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
-.dn { font-size: 12px; font-weight: 500; margin-bottom: 3px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
-.dn.sun { color: var(--red); }
-.dn.sat { color: var(--blue); }
-.w-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
-.w-dot-row { display: flex; gap: 2px; flex-wrap: wrap; }
-.vol-tiny { font-size: 10px; color: var(--green-text); margin-top: 1px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); row-gap: 10px; column-gap: 2px; margin-bottom: 14px; }
+.day-lbl { text-align: center; font-size: 12px; font-weight: 700; color: var(--accent); padding: 4px 0; }
+.day-cell {
+  aspect-ratio: 1 / 1; width: 100%;
+  border: 2px solid var(--border2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; background: var(--bg); position: relative;
+  font-size: 15px; font-weight: 600; color: var(--text);
+}
+.day-cell.other { opacity: .25; border-color: transparent; }
+.day-cell.has-w { background: var(--accent); border-color: var(--accent); color: #fff; }
+.day-cell.today { border-color: var(--accent); color: var(--accent); }
+.day-cell.today.has-w { color: #fff; }
+.dn { font-size: 15px; font-weight: 600; }
 
 /* Stats */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .stat-card { background: var(--bg2); border-radius: var(--radius); padding: 12px; }
-.stat-num { font-size: 22px; font-weight: 600; }
+.stat-num { font-size: 22px; font-weight: 700; color: var(--accent); }
 .stat-lbl { font-size: 12px; color: var(--text2); margin-top: 2px; }
-.rm-chip { background: var(--green-bg); color: var(--green-text); font-size: 12px; padding: 3px 8px; border-radius: 6px; }
+.rm-chip { background: var(--accent-bg); color: var(--accent-text); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
 .vol-bar-wrap { height: 6px; background: var(--bg3); border-radius: 3px; margin-top: 4px; overflow: hidden; }
-.vol-bar-fill { height: 100%; background: var(--blue); border-radius: 3px; }
+.vol-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+
+/* Red summary stat cards (image-style) */
+.redstat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.redstat-card { background: var(--accent); color: #fff; border-radius: var(--radius-lg); padding: 14px; }
+.redstat-jp { font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+.redstat-en { font-size: 9.5px; font-weight: 600; letter-spacing: .3px; opacity: .85; margin-bottom: 10px; }
+.redstat-num { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+.redstat-unit { font-size: 13px; font-weight: 600; margin-left: 1px; }
+.redstat-sub { font-size: 11px; font-weight: 600; opacity: .85; margin-top: 4px; }
+.redstat-section-lbl { font-size: 13px; font-weight: 700; color: var(--text2); margin: 4px 0 8px; }
 
 /* History */
 .hist-vol { font-size: 12px; color: var(--text2); margin-top: 6px; }
@@ -172,11 +192,11 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 /* Streak */
 .streak-grid { display: flex; gap: 3px; flex-wrap: wrap; }
 .sq { width: 13px; height: 13px; border-radius: 2px; background: var(--bg3); }
-.sq.done { background: var(--green); }
-.sq.tod { outline: 2px solid var(--text2); outline-offset: 1px; }
+.sq.done { background: var(--accent); }
+.sq.tod { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* Detail popup */
-.detail-box { background: var(--green-bg); border: 0.5px solid var(--green); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 12px; }
+.detail-box { background: var(--accent-bg); border: 0.5px solid var(--accent); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 12px; }
 
 /* Toast */
 #toast {
@@ -270,17 +290,17 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 
 <!-- CALENDAR -->
 <div class="section" id="sec-cal">
-  <div class="stat-grid" id="cal-summary"></div>
   <div class="cal-header">
     <button class="cal-nav" onclick="chMon(-1)">‹</button>
     <span class="cal-title" id="cal-title"></span>
     <button class="cal-nav" onclick="chMon(1)">›</button>
   </div>
   <div class="cal-grid" id="cal-grid"></div>
-  <div style="display:flex;gap:12px;font-size:12px;color:var(--text2);margin-bottom:12px;align-items:center">
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block"></span>記録あり</span>
+  <div style="display:flex;gap:12px;font-size:12px;color:var(--text2);margin-bottom:16px;align-items:center">
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block"></span>記録あり</span>
   </div>
   <div id="cal-detail"></div>
+  <div class="redstat-grid" id="cal-redstats"></div>
   <div style="font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500">直近52週</div>
   <div class="streak-grid" id="streak"></div>
 </div>
@@ -300,10 +320,24 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
     </div>
   </div>
   <div id="ex-list"></div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:4px">📦 データのバックアップ</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">アプリ更新やデバイス移行の前に、必ずエクスポートしておくと安心です。</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="exportData()">⬇ エクスポート</button>
+      <button class="btn" style="flex:1" onclick="document.getElementById('import-file').click()">⬆ インポート</button>
+    </div>
+    <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importData(this.files[0])">
+    <div id="backup-status" style="font-size:12px;color:var(--text2)"></div>
+  </div>
 </div>
 
 <!-- STATS -->
 <div class="section" id="sec-stats">
+  <div class="redstat-section-lbl" id="stats-month-lbl">今月のサマリー</div>
+  <div class="redstat-grid" id="stats-redstats"></div>
+  <div class="redstat-section-lbl">全期間の統計</div>
   <div class="stat-grid" id="stats-top"></div>
   <div class="card">
     <div style="font-size:14px;font-weight:500;margin-bottom:10px">推定1RM（種目別）</div>
@@ -388,6 +422,67 @@ function moveEx(i, dir) {
 renderExSelect();
 renderExList();
 
+// ── Backup (export / import) ──
+function exportData() {
+  const payload = {
+    app: 'gym-tracker-backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    workouts,
+    exercises
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `gym-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast('バックアップをダウンロードしました');
+}
+
+function importData(file) {
+  if (!file) return;
+  const statusEl = document.getElementById('backup-status');
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); }
+    catch (e) { toast('ファイルを読み込めませんでした'); return; }
+    if (!data || !Array.isArray(data.workouts)) { toast('バックアップ形式が正しくありません'); return; }
+    const mode = workouts.length
+      ? confirm(`現在${workouts.length}件の記録があります。\nOK: 読み込んだデータを追加でマージ\nキャンセル: 既存データを全て置き換え`)
+      : true;
+    if (mode && workouts.length) {
+      // merge: avoid exact duplicate (same date+sets) entries
+      const existingKeys = new Set(workouts.map(w => w.date + JSON.stringify(w.sets)));
+      let added = 0;
+      data.workouts.forEach(w => {
+        const key = w.date + JSON.stringify(w.sets);
+        if (!existingKeys.has(key)) { workouts.push(w); added++; }
+      });
+      workouts.sort((a,b) => new Date(b.date) - new Date(a.date));
+      if (Array.isArray(data.exercises)) {
+        data.exercises.forEach(e => { if (!exercises.includes(e)) exercises.push(e); });
+      }
+      statusEl.textContent = `${added}件の記録を追加しました`;
+    } else {
+      workouts = data.workouts;
+      if (Array.isArray(data.exercises) && data.exercises.length) exercises = data.exercises;
+      statusEl.textContent = `${workouts.length}件の記録で置き換えました`;
+    }
+    localStorage.setItem('gw', JSON.stringify(workouts));
+    saveEx();
+    renderExSelect(); renderExList();
+    toast('インポート完了 ✓');
+    document.getElementById('import-file').value = '';
+  };
+  reader.readAsText(file);
+}
+
 // ── Tabs ──
 function showTab(name, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -462,7 +557,7 @@ function updTimer() {
   const pct = Math.round(tRem/tDur*100);
   const fill = document.getElementById('t-fill');
   fill.style.width = pct + '%';
-  fill.style.background = tRem <= 10 ? '#E24B4A' : tRem <= 30 ? '#BA7517' : 'var(--text)';
+  fill.style.background = tRem <= 10 ? '#8f1a17' : tRem <= 30 ? '#BA7517' : 'var(--accent)';
 }
 
 function setDur(s) { clearInterval(tIv); tRunning=false; tDur=tRem=s; document.getElementById('t-btn').textContent='▶ スタート'; document.getElementById('t-status').textContent='準備完了'; updTimer(); }
@@ -503,6 +598,83 @@ function toggleTimer() {
 function goTimer() { document.querySelectorAll('.nav-item')[1].click(); setTimeout(()=>{ if(!tRunning) toggleTimer(); },100); }
 updTimer();
 
+// ── Month stats (red summary cards) ──
+function computeMonthStats(y, m) {
+  const start = new Date(y, m, 1), end = new Date(y, m + 1, 1);
+  const days = new Set();
+  let totalWeight = 0, totalSets = 0, totalReps = 0;
+  const exSet = new Set(), monthMax = {}, priorMax = {};
+  workouts.forEach(w => {
+    const d = new Date(w.date);
+    const inMonth = d >= start && d < end;
+    const before = d < start;
+    w.sets.forEach(s => {
+      const rm = calc1RM(s.kg, s.reps);
+      if (inMonth) { if (!monthMax[s.ex] || rm > monthMax[s.ex]) monthMax[s.ex] = rm; }
+      else if (before) { if (!priorMax[s.ex] || rm > priorMax[s.ex]) priorMax[s.ex] = rm; }
+    });
+    if (inMonth) {
+      days.add(d.getDate());
+      totalSets += w.sets.length;
+      w.sets.forEach(s => { totalWeight += s.kg * s.reps; totalReps += s.reps; exSet.add(s.ex); });
+    }
+  });
+  let prCount = 0;
+  Object.keys(monthMax).forEach(ex => { if (!priorMax[ex] || monthMax[ex] > priorMax[ex]) prCount++; });
+  return { days: days.size, totalWeight, totalSets, totalReps, exCount: exSet.size, prCount };
+}
+
+function renderRedStats(containerId, y, m) {
+  const cur = computeMonthStats(y, m);
+  let py = y, pm = m - 1; if (pm < 0) { pm = 11; py--; }
+  const prev = computeMonthStats(py, pm);
+  const dayDiff = cur.days - prev.days;
+  const dayDiffStr = dayDiff === 0 ? '±0days' : (dayDiff > 0 ? `+${dayDiff}days` : `${dayDiff}days`);
+  let weightPctStr;
+  if (prev.totalWeight > 0) {
+    const pct = (cur.totalWeight - prev.totalWeight) / prev.totalWeight * 100;
+    weightPctStr = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+  } else {
+    weightPctStr = cur.totalWeight > 0 ? 'NEW' : '±0.00%';
+  }
+  const tonStr = (cur.totalWeight / 1000).toFixed(1);
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = `
+    <div class="redstat-card">
+      <div class="redstat-jp">合計筋トレ日数</div>
+      <div class="redstat-en">TOTAL TRAINING DAY</div>
+      <div><span class="redstat-num">${cur.days}</span><span class="redstat-unit">days</span></div>
+      <div class="redstat-sub">(${dayDiffStr})</div>
+    </div>
+    <div class="redstat-card">
+      <div class="redstat-jp">合計負荷量</div>
+      <div class="redstat-en">TOTAL WEIGHT</div>
+      <div><span class="redstat-num">${tonStr}</span><span class="redstat-unit">t</span></div>
+      <div class="redstat-sub">(${weightPctStr})</div>
+    </div>
+    <div class="redstat-card">
+      <div class="redstat-jp">合計セット数</div>
+      <div class="redstat-en">TOTAL SETS</div>
+      <div><span class="redstat-num">${cur.totalSets}</span><span class="redstat-unit">sets</span></div>
+    </div>
+    <div class="redstat-card">
+      <div class="redstat-jp">合計レップ数</div>
+      <div class="redstat-en">TOTAL REPS</div>
+      <div><span class="redstat-num">${cur.totalReps}</span><span class="redstat-unit">reps</span></div>
+    </div>
+    <div class="redstat-card">
+      <div class="redstat-jp">合計種目数</div>
+      <div class="redstat-en">TOTAL EXERCISES</div>
+      <div><span class="redstat-num">${cur.exCount}</span><span class="redstat-unit">exercises</span></div>
+    </div>
+    <div class="redstat-card">
+      <div class="redstat-jp">記録更新種目数</div>
+      <div class="redstat-en">UPDATE EXERCISES</div>
+      <div><span class="redstat-num">${cur.prCount}</span><span class="redstat-unit">exercises</span></div>
+    </div>`;
+}
+
 // ── Calendar ──
 function dateMap() {
   const m = {};
@@ -522,12 +694,8 @@ function renderCal() {
   const last = new Date(calYear,calMonth+1,0).getDate();
   const prevLast = new Date(calYear,calMonth,0).getDate();
 
-  // summary
-  let ms=0, mv=0, msets=0;
-  for(let d=1;d<=last;d++){const ws=map[`${calYear}-${calMonth}-${d}`]||[];if(ws.length){ms++;ws.forEach(w=>{mv+=vol(w);msets+=w.sets.length;});}}
-  document.getElementById('cal-summary').innerHTML = `
-    <div class="stat-card"><div class="stat-num">${ms}</div><div class="stat-lbl">今月のセッション</div></div>
-    <div class="stat-card"><div class="stat-num">${msets}</div><div class="stat-lbl">総セット数</div></div>`;
+  // summary (red stat cards)
+  renderRedStats('cal-redstats', calYear, calMonth);
 
   const grid = document.getElementById('cal-grid');
   const lbls = ['日','月','火','水','木','金','土'];
@@ -544,13 +712,10 @@ function renderCal() {
     const mo = c.m==='p'?(calMonth===0?11:calMonth-1):c.m==='n'?(calMonth===11?0:calMonth+1):calMonth;
     const key = `${yr}-${mo}-${c.d}`;
     const ws = map[key]||[];
-    const dow = idx%7;
-    const dnCls = isToday ? 'dn' : dow===0?'dn sun':dow===6?'dn sat':'dn';
-    const v = ws.reduce((a,w)=>a+vol(w),0);
 
     const div = document.createElement('div');
     div.className = `day-cell${c.m!=='c'?' other':''}${ws.length?' has-w':''}${isToday?' today':''}`;
-    div.innerHTML = `<div class="${dnCls}">${c.d}</div>${ws.length?`<div class="w-dot-row">${ws.map(()=>'<div class="w-dot"></div>').join('')}</div><div class="vol-tiny">${v.toLocaleString()}kg</div>`:''}`;
+    div.innerHTML = `<span class="dn">${c.d}</span>`;
     if (c.m==='c' && ws.length) div.onclick = () => showCalDetail(c.d, ws);
     grid.appendChild(div);
   });
@@ -582,7 +747,7 @@ function showCalDetail(d, ws) {
       </div>
       ${Object.entries(g).map(([ex,ss])=>`
         <div style="margin-bottom:6px">
-          <div style="font-size:14px;font-weight:500;color:var(--green-text)">${ex}</div>
+          <div style="font-size:14px;font-weight:500;color:var(--accent-text)">${ex}</div>
           <div style="font-size:13px;color:var(--text2)">${ss.map(s=>`${s.kg}kg×${s.reps}`).join(' · ')}</div>
         </div>`).join('')}
     </div>`;
@@ -630,6 +795,10 @@ function delW(i) {
 
 // ── Stats ──
 function renderStats() {
+  document.getElementById('stats-month-lbl').textContent =
+    now.toLocaleDateString('ja-JP',{year:'numeric',month:'long'}) + 'のサマリー';
+  renderRedStats('stats-redstats', now.getFullYear(), now.getMonth());
+
   const ts = workouts.reduce((a,w)=>a+w.sets.length,0);
   const tv = workouts.reduce((a,w)=>a+vol(w),0);
   const days = new Set(workouts.map(w=>w.date.split('T')[0])).size;
