@@ -89,6 +89,7 @@ export async function loadData(): Promise<void> {
       state.outbox = [];
       state.workouts = [];
       state.exercises = [];
+      state.exerciseInfos = [];
       ui.showLogin();
     }
   });

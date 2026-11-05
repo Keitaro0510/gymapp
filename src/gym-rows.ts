@@ -2,13 +2,24 @@
 // - 行 → 画面: rowsToView
 // - 画面の操作 → 変更の列（src/data.ts の Change）: 種目名を ID に直し、トレーニングを消すときは先にセットを消す（D23）
 import { MAX_CHANGES_PER_OP, type Change, type Row, type Rows } from './data.ts';
+import { DEFAULT_PARTS, isMuscle, type Muscle } from './muscles.ts';
 import type { SetEntry, StoredWorkout, Workout } from './types.ts';
+
+/** 消していない種目（画面が使う形）。部位は、主1つ（なければ null）と補助（複数） */
+export interface ExerciseInfo {
+  id: string;
+  name: string;
+  primary: Muscle | null;
+  secondary: Muscle[];
+}
 
 export interface View {
   /** 新しい順 */
   workouts: StoredWorkout[];
-  /** 消していない種目（並び順） */
+  /** 消していない種目の名前（並び順） */
   exercises: string[];
+  /** 消していない種目（並び順。部位つき） */
+  exerciseInfos: ExerciseInfo[];
 }
 
 const num = (v: unknown): number => Number(v);
@@ -42,7 +53,14 @@ export function rowsToView(rows: Rows): View {
         note: String(s.note ?? ''),
       })),
     }));
-  return { workouts, exercises: exRows.filter(r => !r.deleted_at).map(r => String(r.name)) };
+  const active = exRows.filter(r => !r.deleted_at);
+  const exerciseInfos = active.map((r): ExerciseInfo => ({
+    id: r.id,
+    name: String(r.name),
+    primary: isMuscle(r.primary_muscle) ? r.primary_muscle : null,
+    secondary: Array.isArray(r.secondary_muscles) ? r.secondary_muscles.filter(isMuscle) : [],
+  }));
+  return { workouts, exercises: exerciseInfos.map(e => e.name), exerciseInfos };
 }
 
 // ---------- 値の確かめ（DB の制約に合うか。合わないと、送るときに操作ごと断られる） ----------
@@ -135,7 +153,21 @@ const activeExercises = (rows: Rows): Row[] => (rows.gym_exercises || []).filter
 export function addExerciseChanges(rows: Rows, name: string, newId: () => string): Change[] {
   const res = exerciseBook(rows, newId, '');
   res.idFor(name, true);
-  return res.changes;
+  // 標準の割り当てがある名前（src/muscles.ts）なら、新しい種目に部位を最初から入れる（消した種目を戻すときは、前の部位のまま）
+  const parts = DEFAULT_PARTS[name];
+  return res.changes.map(c => (c.action === 'insert' && parts
+    ? { ...c, row: { ...c.row, primary_muscle: parts.primary, secondary_muscles: parts.secondary } }
+    : c));
+}
+
+/** 種目の部位を設定する。主は1つ（なしも可）、補助は複数。主の部位は補助に入れない（DB も見張っている） */
+export function setMusclesChanges(rows: Rows, exerciseId: string, primary: Muscle | null, secondary: Muscle[]): Change[] {
+  if (!(rows.gym_exercises || []).some(r => r.id === exerciseId)) throw new Error('その種目が見つかりません');
+  if (primary !== null && !isMuscle(primary)) throw new Error(`知らない部位です: ${primary}`);
+  const bad = secondary.find(m => !isMuscle(m));
+  if (bad) throw new Error(`知らない部位です: ${bad}`);
+  if (primary !== null && secondary.includes(primary)) throw new Error('主の部位を、補助にも入れることはできません');
+  return [{ table: 'gym_exercises', action: 'update', id: exerciseId, row: { primary_muscle: primary, secondary_muscles: [...new Set(secondary)] } }];
 }
 
 /** 種目を消す（deleted_at を入れる。過去の記録は種目名を出し続ける） */

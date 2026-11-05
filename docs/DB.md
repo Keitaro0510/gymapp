@@ -21,6 +21,8 @@ erDiagram
     uuid user_id FK
     text name "空でない。消していないものの中で一意"
     int position "並び順"
+    text primary_muscle "主に使う部位（D24。空は未設定）"
+    text[] secondary_muscles "補助の部位（D24。複数）"
     timestamptz deleted_at "消した日時（空なら使用中）"
     timestamptz created_at
     timestamptz updated_at
@@ -68,10 +70,27 @@ erDiagram
 | 列 | 型 | 制約・内容 |
 |---|---|---|
 | `name` | text | `btrim(name) <> ''`。**消していない（`deleted_at` が空の）種目の中で、同じ人の名前は一意**（部分一意インデックス） |
+| `primary_muscle` | text（空可） | 主に使う部位（D24）。下の14の部位のどれか。空は未設定 |
+| `secondary_muscles` | text[]（既定 `{}`） | 補助の部位（複数）。同じく14のどれか。**主の部位は入れない** |
 | `deleted_at` | timestamptz（空可） | 削除は行を消さず、これを入れる。過去の記録は種目名を出し続ける |
 
 - 一覧に出るのは `deleted_at is null` の種目。記録にだけ残る名前（消した種目・一覧にない名前）も、`deleted_at` 付きの行として持つ
 - 消した種目と同じ名前を足すときは、その行の `deleted_at` を空に戻す（過去の記録とつながったままにする）
+
+**部位（D24）**: 値は次の14。DB は `check` で、この一覧にない値と、主の部位を補助にも入れることを断る。
+
+| 値 | 部位 | 値 | 部位 |
+|---|---|---|---|
+| `chest` | 胸 | `biceps` | 上腕二頭筋 |
+| `delt_front` | 肩（前部） | `triceps` | 上腕三頭筋 |
+| `delt_side` | 肩（中部） | `forearm` | 前腕 |
+| `delt_rear` | 肩（後部） | `abs` | 腹 |
+| `lats` | 広背筋 | `glutes` | 臀部 |
+| `upper_back` | 僧帽筋・菱形筋 | `quads` | 大腿四頭筋 |
+| `hamstrings` | ハムストリング | `calves` | ふくらはぎ |
+
+- 種目名ごとの標準の割り当ては `src/muscles.ts` の `DEFAULT_PARTS`（調べた内容は gymapp の #10）。同じ名前の種目を足すと、部位が最初から入る
+- 一覧を増やすときは、maney-app で新しいマイグレーションを書いて `check` を作り直す（`src/muscles.ts` も一緒に直す）
 
 ### `gym_workouts`（トレーニング 1 回）
 
@@ -142,6 +161,7 @@ erDiagram
 | セットの種目 `ex`（名前） | `gym_sets.exercise_id` → `gym_exercises.name` |
 | `kg`・`reps`・`rpe`・`note` | `gym_sets` の同名の列（`rpe` は文字から数値に） |
 | 種目の一覧（名前の配列） | `gym_exercises` の `deleted_at is null`、`position` 順 |
+| 種目の部位（主1つ＋補助） | `gym_exercises.primary_muscle`・`secondary_muscles` |
 
 - バックアップ JSON（`{ app: "gym-tracker-backup", version: 1, … }`）の形は、今までの版と同じ。書き出すとき、行の ID は入れない
 - 取り込みのときの「同じ記録」は、日時とセットの中身（種目名・重量・回数・RPE・メモ）で見分ける。同じ記録は足さないので、何度取り込んでも二重にならない
@@ -151,4 +171,4 @@ erDiagram
 - 毎日の写しと復元には入る（`private.snapshot_tables()`）。**写しから戻すと、ジムの記録も写しの時点に戻る**（お金だけ戻したいときの手順は maney-app の `docs/db/RESTORE.md`）
 - maney-app の JSON の読み込み（`import_backup`）には入らない（読み込みのたびにジムの記録を消さないため）
 - お金・予定・タスクのテーブルとは、今は外部キーでつながっていない。Phase 4 で、日付（`gym_workouts.date`）を通して連携する（カレンダーにトレーニングの日、ジム代 ÷ 回数 など）
-- 将来の構想（部位・推定 1RM・停滞の検知）が入るときは、`gym_exercises` に部位の列を足す形になる（[PLAN.md](PLAN.md)）
+- 部位（D24）は足した。人体図に今日の負荷を出す（#11）、部位ごとのバランス（#8）が、これを使う

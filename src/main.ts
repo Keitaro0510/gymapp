@@ -5,7 +5,7 @@ import { ENV } from './env.ts';
 import { offerLegacyImport } from './legacy.ts';
 import { exportData, importData } from './screens/backup.ts';
 import { changeMonth, renderCal } from './screens/calendar.ts';
-import { addEx, delEx, moveEx, renderExList, renderExSelect } from './screens/exercises.ts';
+import { addEx, cancelEditMuscles, delEx, moveEx, renderExList, renderExSelect, saveMuscles, syncMuscleChecks, toggleEditMuscles } from './screens/exercises.ts';
 import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
 import { renderLastSession } from './screens/last.ts';
@@ -65,6 +65,9 @@ const actions: Record<string, (el: HTMLElement) => void> = {
   'add-ex': addEx,
   'del-ex': el => delEx(num(el, 'index')),
   'move-ex': el => moveEx(num(el, 'index'), num(el, 'dir')),
+  'edit-muscles': el => toggleEditMuscles(el.dataset.id ?? ''),
+  'save-muscles': el => saveMuscles(el.dataset.id ?? ''),
+  'cancel-muscles': cancelEditMuscles,
   'export-data': exportData,
   'pick-import': () => byId('import-file').click(),
 };
@@ -74,6 +77,9 @@ document.addEventListener('click', e => {
   const handler = el && actions[el.dataset.action ?? ''];
   if (el && handler) handler(el);
 });
+
+// 部位の編集で、主の部位を選んだら、同じ部位を補助から外す
+document.addEventListener('change', e => { if ((e.target as Element).id === 'mus-primary') syncMuscleChecks(); });
 
 // 種目を選び直したら、その種目の前回の記録を出す
 byId('ex-sel').addEventListener('change', renderLastSession);
