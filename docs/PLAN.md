@@ -48,9 +48,11 @@ gym_sets       (id, workout_id → gym_workouts, exercise_id → gym_exercises,
 
 ### Phase 2: gymapp を新しい土台に移す（このリポジトリ）
 
-- [ ] Vite・TypeScript（strict）・テスト・CI を入れる。maney-app の `package.json`・`tsconfig`・`.github/workflows/` を手本にする
-- [ ] 今の画面（記録・タイマー・カレンダー・履歴・種目・統計）を、見た目と動きを変えずに `src/` へ移す。`localStorage` のまま
+- [x] Vite・TypeScript（strict）・テスト・CI を入れる。maney-app の `package.json`・`tsconfig`・`.github/workflows/` を手本にする
+- [x] 今の画面（記録・タイマー・カレンダー・履歴・種目・統計）を、見た目と動きを変えずに `src/` へ移す。`localStorage` のまま
 - [ ] 公開の手順（GitHub Pages）を新しい土台に合わせる。URL は今のまま（`/gymapp/`）。**新しい版が確かめられるまで、今の版を公開し続ける**
+  - 今の Pages は「main ブランチのルートをそのまま出す」設定。新しい版は Vite でビルドしてから出すので、**マージの前後で Settings → Pages → Source を「GitHub Actions」に切り替える**（切り替えるまでは今の版が出続ける。マージしたあとに切り替えないと、`index.html`（骨組みだけ）がそのまま出て壊れる点に注意。手順は PR に書く）
+  - 切り替えたあとは `.github/workflows/deploy.yml` が公開する。`sw.js` の版は自動で付く（手で `v7` と変えなくてよい）
 
 ### Phase 3: DB につなぐ
 

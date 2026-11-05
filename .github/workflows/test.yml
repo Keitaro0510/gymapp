@@ -1,0 +1,39 @@
+# CI: PR を出したときと、main に入ったときに、型の検査・テスト・試しのビルドを自動で動かす
+name: テスト
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch: # GitHub の画面から手で動かすこともできる
+
+# 読むだけでよい（リポジトリに書き込まない）
+permissions:
+  contents: read
+
+# 同じブランチに続けて push したら、古いほうの実行は止める
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: 型の検査・テスト・ビルド
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: 部品を入れる（package-lock.json のとおり）
+        run: npm ci
+      # src/ の型の検査（strict）。型の間違いがあるとマージできない
+      - name: 型の検査
+        run: npm run typecheck
+      - name: テスト
+        run: npm test
+      # 公開の手順（deploy.yml）と同じやり方で、公開するファイルを試しに作る（マージする前に失敗に気づけるように）
+      - name: 公開するファイルを試しに作る
+        run: bash scripts/build-pages.sh "$RUNNER_TEMP/_site"
