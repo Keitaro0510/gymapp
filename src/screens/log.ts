@@ -1,5 +1,7 @@
 // 記録の画面（今日のセットを入力して保存する）
-import { persistWorkouts, state } from '../state.ts';
+import { saveWorkoutChanges } from '../gym-rows.ts';
+import { state } from '../state.ts';
+import { commit, newId } from '../sync.ts';
 import { byId, esc, toast } from '../ui.ts';
 
 export function renderLogDate(): void {
@@ -9,7 +11,7 @@ export function renderLogDate(): void {
 export function addSet(): void {
   const kg = parseFloat(byId<HTMLInputElement>('w-kg').value);
   const reps = parseInt(byId<HTMLInputElement>('w-reps').value);
-  if (!kg || !reps) { toast('重量と回数を入力してください'); return; }
+  if (!kg || !reps || kg < 0 || reps < 1) { toast('重量と回数を入力してください'); return; }
   const rpe = byId<HTMLInputElement>('w-rpe').value;
   const note = byId<HTMLTextAreaElement>('w-note').value.trim();
   const ex = byId<HTMLSelectElement>('ex-sel').value || 'カスタム';
@@ -56,8 +58,8 @@ export function clearSets(): void {
 
 export function saveWorkout(): void {
   if (!state.sets.length) { toast('セットを追加してください'); return; }
-  state.workouts.unshift({ date: new Date().toISOString(), sets: [...state.sets] });
-  persistWorkouts();
+  // 保存できなければ、入力中のセットは残す
+  if (!commit(rows => saveWorkoutChanges(rows, state.sets, new Date(), newId))) return;
   state.sets = [];
   renderSets();
   toast('保存しました ✓');

@@ -1,6 +1,7 @@
 // バックアップの画面（エクスポート・インポート）
-import { backupFileName, buildBackup, mergeBackup, parseBackup, replaceWithBackup } from '../backup.ts';
-import { persistExercises, persistWorkouts, state } from '../state.ts';
+import { backupFileName, buildBackup, parseBackup } from '../backup.ts';
+import { importIntoDb } from '../importing.ts';
+import { state } from '../state.ts';
 import { byId, toast } from '../ui.ts';
 import { renderExList, renderExSelect } from './exercises.ts';
 
@@ -19,9 +20,9 @@ export function exportData(): void {
   toast('バックアップをダウンロードしました');
 }
 
+/** 読み込んだファイルを、サーバーに足す（同じ記録は足さない。全部置き換えはしない） */
 export function importData(file: File | undefined): void {
   if (!file) return;
-  const statusEl = byId('backup-status');
   const reader = new FileReader();
   reader.onload = () => {
     const parsed = parseBackup(String(reader.result));
@@ -29,25 +30,12 @@ export function importData(file: File | undefined): void {
       toast(parsed.reason === 'unreadable' ? 'ファイルを読み込めませんでした' : 'バックアップ形式が正しくありません');
       return;
     }
-    const merge = state.workouts.length
-      ? confirm(`現在${state.workouts.length}件の記録があります。\nOK: 読み込んだデータを追加でマージ\nキャンセル: 既存データを全て置き換え`)
-      : true;
-    if (merge && state.workouts.length) {
-      const r = mergeBackup(state.workouts, state.exercises, parsed);
-      state.workouts = r.workouts;
-      state.exercises = r.exercises;
-      statusEl.textContent = `${r.added}件の記録を追加しました`;
-    } else {
-      const r = replaceWithBackup(state.exercises, parsed);
-      state.workouts = r.workouts;
-      state.exercises = r.exercises;
-      statusEl.textContent = `${state.workouts.length}件の記録で置き換えました`;
-    }
-    persistWorkouts();
-    persistExercises();
+    const added = importIntoDb(parsed.workouts, parsed.exercises);
+    byId<HTMLInputElement>('import-file').value = '';
+    if (added === null) return; // 保存できなかった（知らせは出ている）
+    byId('backup-status').textContent = `${added}件の記録を追加しました`;
     renderExSelect(); renderExList();
     toast('インポート完了 ✓');
-    byId<HTMLInputElement>('import-file').value = '';
   };
   reader.readAsText(file);
 }

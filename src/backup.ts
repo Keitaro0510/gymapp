@@ -1,12 +1,13 @@
-// バックアップ JSON の作成・読み込み・マージ。DOM に触れない。
+// バックアップ JSON の作成・読み込み。DOM に触れない。サーバーへの取り込みは src/importing.ts
 import type { Backup, Workout } from './types.ts';
 
+/** バックアップの形は今までの版と同じ（行の id は入れない）。取り込みで、同じ記録を二重に足さないように date と sets で見分ける（src/gym-rows.ts の workoutKey） */
 export function buildBackup(workouts: Workout[], exercises: string[], now: Date): Backup {
   return {
     app: 'gym-tracker-backup',
     version: 1,
     exportedAt: now.toISOString(),
-    workouts,
+    workouts: workouts.map(w => ({ date: w.date, sets: w.sets })),
     exercises,
   };
 }
@@ -27,39 +28,4 @@ export function parseBackup(text: string): ParsedBackup {
   const d = data as { workouts?: unknown; exercises?: unknown } | null;
   if (!d || !Array.isArray(d.workouts)) return { ok: false, reason: 'format' };
   return { ok: true, workouts: d.workouts as Workout[], exercises: Array.isArray(d.exercises) ? d.exercises as string[] : null };
-}
-
-/** 同じ記録かどうかの判定（日時とセットの中身が同じ） */
-function workoutKey(w: Workout): string {
-  return w.date + JSON.stringify(w.sets);
-}
-
-/** 追加でマージする。同じ記録は足さない。新しい順に並べ、知らない種目は後ろに足す。元の配列は変えない */
-export function mergeBackup(
-  workouts: Workout[], exercises: string[],
-  incoming: { workouts: Workout[]; exercises: string[] | null },
-): { workouts: Workout[]; exercises: string[]; added: number } {
-  const merged = [...workouts];
-  const keys = new Set(workouts.map(workoutKey));
-  let added = 0;
-  for (const w of incoming.workouts) {
-    if (!keys.has(workoutKey(w))) { merged.push(w); added++; }
-  }
-  merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const mergedEx = [...exercises];
-  for (const e of incoming.exercises ?? []) {
-    if (!mergedEx.includes(e)) mergedEx.push(e);
-  }
-  return { workouts: merged, exercises: mergedEx, added };
-}
-
-/** 全部置き換える。種目は、読み込んだ中身が空でないときだけ置き換える */
-export function replaceWithBackup(
-  exercises: string[],
-  incoming: { workouts: Workout[]; exercises: string[] | null },
-): { workouts: Workout[]; exercises: string[] } {
-  return {
-    workouts: incoming.workouts,
-    exercises: incoming.exercises && incoming.exercises.length ? incoming.exercises : exercises,
-  };
 }
