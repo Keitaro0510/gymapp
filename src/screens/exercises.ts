@@ -3,11 +3,13 @@ import { addExerciseChanges, deleteExerciseChanges, moveExerciseChanges } from '
 import { state } from '../state.ts';
 import { commit, newId } from '../sync.ts';
 import { byId, esc, toast } from '../ui.ts';
+import { renderLastSession } from './last.ts';
 
 export function renderExSelect(): void {
   const sel = byId<HTMLSelectElement>('ex-sel');
   const cur = sel.value;
   sel.innerHTML = state.exercises.map(e => `<option${e === cur ? ' selected' : ''}>${esc(e)}</option>`).join('');
+  renderLastSession();
 }
 
 export function renderExList(): void {

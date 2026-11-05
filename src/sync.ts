@@ -143,6 +143,7 @@ export function commit(build: (rows: Rows) => Change[] | Change[][]): boolean {
   }
   store('outbox', state.outbox);
   rebuildView();
+  ui.renderCurrentSection(); // 取り込みなど、画面の外から変えたときも、開いている画面（種目の選択欄・前回の記録）に出す
   ui.updateSyncStatus();
   void flushOutbox();
   return true;

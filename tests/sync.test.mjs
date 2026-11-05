@@ -89,6 +89,13 @@ test('保存: 画面にすぐ出て、送り終えたらサーバーに入り、
   assert.equal(loadStored('outbox').length, 0);
 });
 
+test('保存したら、開いている画面を描き直す（取り込みのあとに、種目の選択欄が空のままにならない）', async () => {
+  await loadRemote();
+  const before = ui.renders;
+  commit(rows => addExerciseChanges(rows, 'デッド', () => 'new-ex'));
+  assert.equal(ui.renders, before + 1);
+});
+
 test('読み込む前は保存できない（知らせを出して、積まない）', () => {
   assert.equal(commit(rows => addExerciseChanges(rows, 'x', () => 'x')), false);
   assert.equal(state.outbox.length, 0);

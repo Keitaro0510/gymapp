@@ -2,19 +2,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  calc1RM, volume, dayKey, workoutsByDay, groupByExercise, computeMonthStats,
-  formatMonthComparison, previousMonth, exerciseTotals, overallTotals,
+  volume, dayKey, workoutsByDay, groupByExercise, computeMonthStats,
+  formatMonthComparison, previousMonth, exerciseTotals, overallTotals, lastSession, daysBetween, formatDaysAgo,
 } from '../src/stats.ts';
 
 const set = (ex, kg, reps) => ({ ex, kg, reps, rpe: null, note: '' });
 // 端末の時刻で作る（集計も端末の日付で見るので、どのタイムゾーンでも同じ日になる）
 const at = (y, m, d, h = 12) => new Date(y, m, d, h).toISOString();
-
-test('推定1RM: 1回はそのまま、ほかは Epley の式を四捨五入', () => {
-  assert.equal(calc1RM(100, 1), 100);
-  assert.equal(calc1RM(60, 10), 80);   // 60 × (1 + 10/30)
-  assert.equal(calc1RM(62.5, 8), 79);  // 79.16… → 79
-});
 
 test('総ボリューム: 重量 × 回数の合計', () => {
   assert.equal(volume({ date: at(2026, 10, 1), sets: [set('a', 60, 10), set('a', 62.5, 8)] }), 1100);
@@ -46,10 +40,18 @@ test('月の集計: 日数・合計・種目数・記録更新', () => {
   assert.equal(s.totalReps, 30);
   assert.equal(s.totalWeight, 600 + 500 + 600 + 350);
   assert.equal(s.exCount, 2);
-  // ベンチ: 今月の最大 83（70×5）、前の月の最大 89（70×8）→ 更新なし。スクワット: 117（100×5）< 140（120×5）→ 更新なし
+  // 記録更新は、実際に上がった最高重量で比べる（推定はしない）
+  // ベンチ: 今月の最高 70kg、前の月の最高 70kg → 同じなので更新なし（70×5 と 70×8 で回数が違っても、重量は同じ）
+  // スクワット: 今月 100kg < 前の月 120kg → 更新なし
   assert.equal(s.prCount, 0);
   // 前の月に記録がない種目は更新に数える
   assert.equal(computeMonthStats(workouts, 2026, 9).prCount, 2);
+  // 重量が上がれば更新。回数が増えただけ（80×5 → 80×10）では更新にならない
+  const w2 = [
+    { date: at(2026, 9, 1), sets: [set('ベンチ', 80, 5), set('スクワット', 100, 5)] },
+    { date: at(2026, 10, 1), sets: [set('ベンチ', 80, 10), set('スクワット', 102.5, 1)] },
+  ];
+  assert.equal(computeMonthStats(w2, 2026, 10).prCount, 1);
 });
 
 test('月の比較の表示', () => {
@@ -69,13 +71,15 @@ test('1つ前の月は年をまたぐ', () => {
   assert.deepEqual(previousMonth(2026, 5), { y: 2026, m: 4 });
 });
 
-test('種目別の最大1RMと合計ボリューム', () => {
+test('種目別の最高重量（実際に上がった最高の重量）と合計ボリューム', () => {
   const t = exerciseTotals([
     { date: at(2026, 10, 1), sets: [set('a', 60, 10), set('b', 10, 10)] },
-    { date: at(2026, 10, 2), sets: [set('a', 70, 5)] },
+    { date: at(2026, 10, 2), sets: [set('a', 80, 5), set('a', 75, 8)] },
   ]);
   assert.deepEqual([...t.keys()], ['a', 'b']);
-  assert.deepEqual(t.get('a'), { rm: 82, vol: 600 + 350 }); // max(80, 82)
+  // 80×5 が上がったので最高重量は 80（推定の 93 ではない）。回数は問わない
+  assert.deepEqual(t.get('a'), { best: 80, vol: 600 + 400 + 600 });
+  assert.equal(t.get('b').best, 10);
 });
 
 test('全期間の合計', () => {
@@ -85,4 +89,26 @@ test('全期間の合計', () => {
     { date: '2026-11-02T01:00:00.000Z', sets: [] },
   ]);
   assert.deepEqual(t, { sessions: 3, sets: 3, volume: 300, days: 2 });
+});
+
+test('前回の記録: その種目を含むいちばん新しいトレーニングの、その種目のセットだけ', () => {
+  const workouts = [ // 新しい順
+    { date: at(2026, 10, 5), sets: [set('スクワット', 100, 5)] },
+    { date: at(2026, 10, 3), sets: [set('ベンチ', 80, 5), set('スクワット', 90, 8), set('ベンチ', 77.5, 6)] },
+    { date: at(2026, 9, 28), sets: [set('ベンチ', 75, 8)] },
+  ];
+  const last = lastSession(workouts, 'ベンチ');
+  assert.equal(last.date, workouts[1].date);
+  assert.deepEqual(last.sets.map(s => `${s.kg}x${s.reps}`), ['80x5', '77.5x6'], '他の種目のセットは入らない');
+  assert.equal(lastSession(workouts, 'スクワット').date, workouts[0].date);
+  assert.equal(lastSession(workouts, 'デッドリフト'), null);
+  assert.equal(lastSession([], 'ベンチ'), null);
+});
+
+test('何日前か: 端末の日付で数える（時刻は見ない）', () => {
+  assert.equal(daysBetween(new Date(2026, 10, 5, 23, 59), new Date(2026, 10, 5, 0, 1)), 0);
+  assert.equal(daysBetween(new Date(2026, 10, 4, 23, 59), new Date(2026, 10, 5, 0, 1)), 1, '時刻が近くても、日付が違えば1日前');
+  assert.equal(daysBetween(new Date(2026, 9, 31), new Date(2026, 10, 5)), 5, '月をまたぐ');
+  assert.equal(daysBetween(new Date(2026, 2, 28), new Date(2026, 3, 1)), 4, '夏時間の国でも日数がずれない');
+  assert.deepEqual([0, 1, 3, -1].map(formatDaysAgo), ['今日', '昨日', '3日前', '今日']);
 });
