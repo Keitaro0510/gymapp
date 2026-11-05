@@ -35,6 +35,12 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Supabase・Google 認証はキャッシュしない（毎回通信。古い記録を出さないため）
+  if (e.request.url.includes('supabase.co') || e.request.url.includes('accounts.google.com') || e.request.url.includes('googleapis.com')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
+
   if (DEV) {
     // ブラウザが覚えている分も、サーバーに確かめ直す（no-cache）。ページを開くときは、そのまま読む
     const req = e.request.mode === 'navigate' || e.request.method !== 'GET' ? e.request : new Request(e.request.url, { cache: 'no-cache' });

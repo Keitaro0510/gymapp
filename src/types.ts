@@ -17,6 +17,11 @@ export interface Workout {
   sets: SetEntry[];
 }
 
+/** DB から読んだトレーニング（画面が使う形）。id は gym_workouts の行の id */
+export interface StoredWorkout extends Workout {
+  id: string;
+}
+
 /** バックアップ JSON（アプリの「エクスポート」） */
 export interface Backup {
   app: 'gym-tracker-backup';

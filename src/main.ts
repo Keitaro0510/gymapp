@@ -1,24 +1,41 @@
-// アプリの入口。画面の初期表示と、ボタン（data-action）の受け付けをつなぐ。
+// アプリの入口。画面の初期表示・ログイン・同期と、ボタン（data-action）の受け付けをつなぐ。
+import { initAuth, loadData, loginWithGoogle } from './auth.ts';
+import { downloadJson, hideBanner, showBanner } from './banner.ts';
+import { ENV } from './env.ts';
+import { offerLegacyImport } from './legacy.ts';
 import { exportData, importData } from './screens/backup.ts';
 import { changeMonth, renderCal } from './screens/calendar.ts';
 import { addEx, delEx, moveEx, renderExList, renderExSelect } from './screens/exercises.ts';
 import { delWorkout, renderHist } from './screens/history.ts';
-import { addSet, clearSets, removeSet, renderLogDate, saveWorkout } from './screens/log.ts';
+import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
 import { renderStats } from './screens/stats.ts';
 import { initTimer, isTimerRunning, resetTimer, setCustom, setDur, toggleTimer } from './screens/timer.ts';
-import { byId } from './ui.ts';
+import { state } from './state.ts';
+import type { SupaClient } from './data.ts';
+import { initSync, resyncRemote } from './sync.ts';
+import { createSupa } from './supa.ts';
+import { byId, toast } from './ui.ts';
 
 // ── タブ ──
 type TabName = 'log' | 'timer' | 'cal' | 'hist' | 'ex' | 'stats';
+let currentTab: TabName = 'log';
 
 function showTab(name: TabName): void {
+  currentTab = name;
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', (b as HTMLElement).dataset.tab === name));
   byId('sec-' + name).classList.add('active');
-  if (name === 'ex') renderExList();
-  if (name === 'cal') renderCal();
-  if (name === 'hist') renderHist();
-  if (name === 'stats') renderStats();
+  renderCurrentSection();
+}
+
+/** 開いている画面を描き直す（タブを開いたときと、サーバーから読み込み直したとき） */
+function renderCurrentSection(): void {
+  renderExSelect();
+  if (currentTab === 'log') renderSets();
+  if (currentTab === 'ex') renderExList();
+  if (currentTab === 'cal') renderCal();
+  if (currentTab === 'hist') renderHist();
+  if (currentTab === 'stats') renderStats();
 }
 
 /** 記録画面の「レスト」: タイマーに移って、止まっていれば始める */
@@ -32,6 +49,7 @@ function goTimer(): void {
 const num = (el: HTMLElement, key: string): number => Number(el.dataset[key]);
 const actions: Record<string, (el: HTMLElement) => void> = {
   'tab': el => showTab(el.dataset.tab as TabName),
+  'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
   'go-timer': goTimer,
   'save-workout': saveWorkout,
@@ -60,11 +78,48 @@ byId<HTMLInputElement>('import-file').addEventListener('change', e => {
   importData((e.target as HTMLInputElement).files?.[0]);
 });
 
+// ── 同期の状態の表示（種目の画面の「同期」） ──
+function updateSyncStatus(): void {
+  const el = byId('sync-status');
+  const user = state.currentUser;
+  const lines: string[] = [];
+  lines.push(user ? `ログイン中: ${user.email ?? user.id}` : 'ログインしていません');
+  if (state.outbox.length) lines.push(`送れていない変更: ${state.outbox.length}件（この端末に保存済み）`);
+  else if (state.remoteReady) lines.push('すべてサーバーに保存されています ✓');
+  el.replaceChildren(...lines.map(t => { const d = document.createElement('div'); d.textContent = t; return d; }));
+}
+
+// ── ログイン・同期 ──
+const supa = createSupa(ENV);
+const loginScreen = byId('login-screen');
+
+initSync({
+  supa: supa as unknown as SupaClient,
+  storagePrefix: ENV.storagePrefix,
+  ui: { showBanner, hideBanner, renderCurrentSection, updateSyncStatus, downloadJson },
+});
+initAuth({
+  supa,
+  ui: {
+    showLogin: () => loginScreen.classList.add('show'),
+    hideLogin: () => loginScreen.classList.remove('show'),
+    renderFirst: renderCurrentSection,
+    updateSyncStatus,
+    afterSync: () => offerLegacyImport({ showBanner, hideBanner, toast }),
+  },
+});
+
+// アプリに戻ってきたとき・通信が戻ったとき: 送れていない変更を送って、読み込み直す
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void resyncRemote(); });
+window.addEventListener('online', () => { void resyncRemote(); });
+
 // ── 初期表示 ──
 renderLogDate();
 renderExSelect();
 renderExList();
 initTimer();
+updateSyncStatus();
+void loadData();
 
 // ── ホーム画面に追加（PWA） ──
 interface BeforeInstallPromptEvent extends Event {

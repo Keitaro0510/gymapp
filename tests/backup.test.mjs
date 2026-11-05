@@ -1,18 +1,19 @@
-// バックアップ（src/backup.ts）と保存（src/storage.ts）のテスト
+// バックアップ（src/backup.ts）と、端末に残った古い記録の読み込み（src/storage.ts）のテスト
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildBackup, backupFileName, parseBackup, mergeBackup, replaceWithBackup } from '../src/backup.ts';
-import { loadWorkouts, saveWorkouts, loadExercises, saveExercises, DEFAULT_EXERCISES } from '../src/storage.ts';
+import { buildBackup, backupFileName, parseBackup } from '../src/backup.ts';
+import { loadWorkouts, loadExercises, DEFAULT_EXERCISES } from '../src/storage.ts';
 
 const w = (date, ex = 'a') => ({ date, sets: [{ ex, kg: 60, reps: 10, rpe: null, note: '' }] });
 
-test('バックアップの形は今までの版と同じ', () => {
+test('バックアップの形は今までの版と同じ（行の id は入れない）', () => {
   const now = new Date('2026-11-05T03:00:00.000Z');
-  const b = buildBackup([w('2026-11-01T00:00:00.000Z')], ['a'], now);
+  const b = buildBackup([{ id: 'row-1', ...w('2026-11-01T00:00:00.000Z') }], ['a'], now);
   assert.deepEqual(Object.keys(b), ['app', 'version', 'exportedAt', 'workouts', 'exercises']);
   assert.equal(b.app, 'gym-tracker-backup');
   assert.equal(b.version, 1);
   assert.equal(b.exportedAt, '2026-11-05T03:00:00.000Z');
+  assert.deepEqual(b.workouts, [w('2026-11-01T00:00:00.000Z')]);
   assert.equal(backupFileName(now), 'gym-backup-2026-11-05.json');
 });
 
@@ -26,36 +27,16 @@ test('読み込み: 壊れたファイルと形式違いを区別する', () => 
   assert.deepEqual(ok.exercises, ['a', 'b']);
 });
 
-test('マージ: 同じ記録は足さず、新しい順に並べ、知らない種目だけ足す', () => {
-  const have = [w('2026-11-01T00:00:00.000Z'), w('2026-10-01T00:00:00.000Z')];
-  const incoming = { workouts: [w('2026-11-01T00:00:00.000Z'), w('2026-11-03T00:00:00.000Z', 'c'), w('2026-09-01T00:00:00.000Z')], exercises: ['a', 'c'] };
-  const r = mergeBackup(have, ['a', 'b'], incoming);
-  assert.equal(r.added, 2);
-  assert.deepEqual(r.workouts.map(x => x.date), ['2026-11-03T00:00:00.000Z', '2026-11-01T00:00:00.000Z', '2026-10-01T00:00:00.000Z', '2026-09-01T00:00:00.000Z']);
-  assert.deepEqual(r.exercises, ['a', 'b', 'c']);
-  assert.equal(have.length, 2, '元の配列は変えない');
-});
-
-test('置き換え: 種目は、読み込んだ中身が空でないときだけ', () => {
-  const ws = [w('2026-11-01T00:00:00.000Z')];
-  assert.deepEqual(replaceWithBackup(['x'], { workouts: ws, exercises: ['a'] }).exercises, ['a']);
-  assert.deepEqual(replaceWithBackup(['x'], { workouts: ws, exercises: [] }).exercises, ['x']);
-  assert.deepEqual(replaceWithBackup(['x'], { workouts: ws, exercises: null }).exercises, ['x']);
-});
-
-function fakeStore() {
-  const m = new Map();
-  return { getItem: k => m.get(k) ?? null, setItem: (k, v) => m.set(k, v), raw: m };
+function fakeStore(init = {}) {
+  const m = new Map(Object.entries(init));
+  return { getItem: k => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) };
 }
 
-test('保存のキーは今までと同じ（gw・gw_ex）で、往復できる', () => {
-  const s = fakeStore();
-  assert.deepEqual(loadWorkouts(s), []);
-  saveWorkouts(s, [w('2026-11-01T00:00:00.000Z')]);
-  saveExercises(s, ['a']);
-  assert.deepEqual([...s.raw.keys()].sort(), ['gw', 'gw_ex']);
+test('端末に残った古い記録は、今までと同じキー（gw・gw_ex）から読む', () => {
+  const s = fakeStore({ gw: JSON.stringify([w('2026-11-01T00:00:00.000Z')]), gw_ex: JSON.stringify(['a']) });
   assert.deepEqual(loadWorkouts(s), [w('2026-11-01T00:00:00.000Z')]);
   assert.deepEqual(loadExercises(s), ['a']);
+  assert.deepEqual(loadWorkouts(fakeStore()), []);
 });
 
 test('種目の保存がなければ初期の12種目', () => {

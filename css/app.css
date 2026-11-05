@@ -199,3 +199,22 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   padding: 10px 16px; align-items: center; gap: 10px; font-size: 13px;
 }
 #install-banner button { margin-left: auto; }
+
+/* Sync banner（同期の知らせ） */
+#sync-banner {
+  display: none; background: var(--accent-bg); color: var(--text);
+  border-bottom: 0.5px solid var(--accent); padding: 10px 16px; font-size: 13px;
+}
+#sync-banner .banner-msg { white-space: pre-wrap; margin-bottom: 8px; }
+#sync-banner .banner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Login（ログイン画面） */
+#login-screen {
+  display: none; position: fixed; inset: 0; z-index: 300; background: var(--bg);
+  align-items: center; justify-content: center; padding: 24px;
+}
+#login-screen.show { display: flex; }
+.login-box { width: 100%; max-width: 320px; text-align: center; }
+.login-title { font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+.login-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+

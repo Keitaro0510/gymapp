@@ -1,5 +1,5 @@
-// localStorage への保存と読み込み。Storage を引数で受けるので、テストでは偽物を渡せる。
-// Phase 3 で、ここが「端末の写し」になり、Supabase が正になる（docs/PLAN.md）
+// この端末の localStorage に残っている、今までの版の記録（キー gw・gw_ex）を読む。
+// 記録の正は Supabase になったので、ここには書かない（読むだけ。サーバーへ移す案内は src/legacy.ts）。Storage を引数で受けるので、テストでは偽物を渡せる
 import type { Workout } from './types.ts';
 
 export const WORKOUTS_KEY = 'gw';
@@ -16,15 +16,7 @@ export function loadWorkouts(store: KeyValueStore): Workout[] {
   return JSON.parse(store.getItem(WORKOUTS_KEY) || '[]') as Workout[];
 }
 
-export function saveWorkouts(store: KeyValueStore, workouts: Workout[]): void {
-  store.setItem(WORKOUTS_KEY, JSON.stringify(workouts));
-}
-
 /** 保存がなければ（または null なら）初期の種目 */
 export function loadExercises(store: KeyValueStore): string[] {
   return (JSON.parse(store.getItem(EXERCISES_KEY) || 'null') as string[] | null) || [...DEFAULT_EXERCISES];
-}
-
-export function saveExercises(store: KeyValueStore, exercises: string[]): void {
-  store.setItem(EXERCISES_KEY, JSON.stringify(exercises));
 }

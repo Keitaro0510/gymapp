@@ -21,6 +21,9 @@
   <h1>💪 筋トレ記録</h1>
 </div>
 
+<!-- 同期の知らせ（送れない・競合・古い記録の案内など）。src/banner.ts が出す -->
+<div id="sync-banner" role="status"></div>
+
 <div id="install-banner">
   <span>ホーム画面に追加できます</span>
   <button class="btn btn-sm btn-primary" id="install-btn">追加</button>
@@ -132,6 +135,12 @@
     <input type="file" id="import-file" accept="application/json" style="display:none">
     <div id="backup-status" style="font-size:12px;color:var(--text2)"></div>
   </div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:4px">☁️ 同期</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">記録はサーバー（maney-app と同じアカウント）に保存されます。通信できないときはこの端末に残し、つながったら送ります。</div>
+    <div id="sync-status" style="font-size:13px"></div>
+  </div>
 </div>
 
 <!-- STATS -->
@@ -163,6 +172,15 @@
 </nav>
 
 <div id="toast"></div>
+
+<!-- ログイン画面（ログインしていないときだけ出す）。maney-app と同じ Google アカウントでログインする -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">💪 筋トレ記録</div>
+    <div class="login-sub">maney-app と同じアカウントでログインします</div>
+    <button class="btn btn-primary btn-block" data-action="login">Google でログイン</button>
+  </div>
+</div>
 
 </body>
 </html>

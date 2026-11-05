@@ -8,6 +8,8 @@
 
 記録（種目・重量・回数・RPE・メモ）、休憩タイマー、カレンダー、履歴、種目の管理、統計、バックアップ JSON の書き出し・読み込み。
 
+記録は Supabase（maney-app と同じプロジェクト。`gym_` のテーブル）に保存する。maney-app と同じ Google アカウントでログインする（ログインは共有）。通信できないときは端末に残し、つながったら送る。
+
 ## 作り方
 
 Vite + TypeScript（strict）。画面は `index.html`（骨組み）・`css/app.css`・`src/`（コード）に分かれている。
@@ -24,4 +26,4 @@ npm run build      # dist/ にビルドする
 
 ## これから
 
-今は端末の `localStorage` にしか記録がないので、関係データベース（Supabase）に載せる。姉妹アプリ [maney-app](https://github.com/Keitaro0510/maney-app)（家計・予定・タスク）と同じ DB を使い、あとで連携する。方針と進める順番は [docs/PLAN.md](docs/PLAN.md)。
+姉妹アプリ [maney-app](https://github.com/Keitaro0510/maney-app)（家計・予定・タスク）と、あとで連携する（カレンダーにトレーニングの日、今週の回数、ジム代の1回あたり）。方針と進める順番は [docs/PLAN.md](docs/PLAN.md)。

@@ -1,6 +1,8 @@
 // 履歴の画面（保存した記録の一覧・削除）
 import { groupByExercise, volume } from '../stats.ts';
-import { persistWorkouts, state } from '../state.ts';
+import { deleteWorkoutChanges } from '../gym-rows.ts';
+import { state } from '../state.ts';
+import { commit } from '../sync.ts';
 import { byId, esc } from '../ui.ts';
 
 export function renderHist(): void {
@@ -28,8 +30,8 @@ export function renderHist(): void {
 }
 
 export function delWorkout(i: number): void {
+  const w = state.workouts[i];
+  if (!w) return;
   if (!confirm('削除しますか？')) return;
-  state.workouts.splice(i, 1);
-  persistWorkouts();
-  renderHist();
+  if (commit(rows => deleteWorkoutChanges(rows, w.id))) renderHist();
 }
