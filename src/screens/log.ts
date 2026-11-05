@@ -3,6 +3,7 @@ import { saveWorkoutChanges } from '../gym-rows.ts';
 import { state } from '../state.ts';
 import { commit, newId } from '../sync.ts';
 import { byId, esc, toast } from '../ui.ts';
+import { renderBody } from './body.ts';
 import { renderLastSession } from './last.ts';
 
 export function renderLogDate(): void {
@@ -64,5 +65,6 @@ export function saveWorkout(): void {
   state.sets = [];
   renderSets();
   renderLastSession(); // 今保存した記録が、次の「前回」になる
+  renderBody(); // 今日の負荷（人体図）にも反映する
   toast('保存しました ✓');
 }

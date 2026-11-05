@@ -2,6 +2,7 @@
 import type { User } from '@supabase/supabase-js';
 import type { Op, Server } from './data.ts';
 import type { ExerciseInfo } from './gym-rows.ts';
+import type { Parts } from './muscles.ts';
 import type { SetEntry, StoredWorkout } from './types.ts';
 
 /** 送るのを止めている理由。選んでもらうまで送らない */
@@ -16,6 +17,8 @@ export const state = {
   exercises: [] as string[],
   /** 消していない種目（部位つき） */
   exerciseInfos: [] as ExerciseInfo[],
+  /** 種目名 → 部位（消した種目も含む）。人体図の負荷の計算に使う */
+  partsByName: new Map<string, Parts>(),
   /** アプリを開いた時刻。カレンダーの「今日」と今月の統計に使う（開き直すまで変えない。今までの版と同じ） */
   now: new Date(),
 

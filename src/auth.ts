@@ -90,6 +90,7 @@ export async function loadData(): Promise<void> {
       state.workouts = [];
       state.exercises = [];
       state.exerciseInfos = [];
+      state.partsByName = new Map();
       ui.showLogin();
     }
   });
