@@ -1,0 +1,16 @@
+{
+  "name": "gymapp",
+  "private": true,
+  "description": "筋トレの記録・タイマー・カレンダーアプリ（PWA）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test \"tests/*.test.mjs\"",
+    "typecheck": "tsc -p src/tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  }
+}

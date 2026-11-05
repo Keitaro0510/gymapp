@@ -1,0 +1,9 @@
+# npm の部品と、Vite のビルドの出力
+node_modules/
+dist/
+
+# 公開するファイルを集めた場所（scripts/build-pages.sh が作る）
+_site/
+
+# 画面の比較などの一時ファイル
+test-results/
