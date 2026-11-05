@@ -8,6 +8,7 @@ import { changeMonth, renderCal } from './screens/calendar.ts';
 import { addEx, delEx, moveEx, renderExList, renderExSelect } from './screens/exercises.ts';
 import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
+import { renderLastSession } from './screens/last.ts';
 import { renderStats } from './screens/stats.ts';
 import { initTimer, isTimerRunning, resetTimer, setCustom, setDur, toggleTimer } from './screens/timer.ts';
 import { state } from './state.ts';
@@ -73,6 +74,9 @@ document.addEventListener('click', e => {
   const handler = el && actions[el.dataset.action ?? ''];
   if (el && handler) handler(el);
 });
+
+// 種目を選び直したら、その種目の前回の記録を出す
+byId('ex-sel').addEventListener('change', renderLastSession);
 
 byId<HTMLInputElement>('import-file').addEventListener('change', e => {
   importData((e.target as HTMLInputElement).files?.[0]);

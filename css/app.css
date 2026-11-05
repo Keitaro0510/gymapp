@@ -218,3 +218,12 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .login-title { font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
 .login-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
 
+/* Last session（種目を選んだときの、前回の記録） */
+#last-session:empty { display: none; }
+.last-box { margin-top: 8px; padding: 8px 12px; background: var(--accent-bg); border-radius: var(--radius); font-size: 13px; }
+.last-head { color: var(--accent-text); font-weight: 600; margin-bottom: 2px; }
+.last-sets { color: var(--text); line-height: 1.6; }
+.last-sets .top { font-weight: 800; color: var(--accent-text); }
+.last-sets .n { color: var(--text2); }
+.last-none { margin-top: 8px; font-size: 12px; color: var(--text2); }
+

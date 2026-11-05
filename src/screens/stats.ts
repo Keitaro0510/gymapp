@@ -1,4 +1,4 @@
-// 統計の画面（今月のサマリー・全期間の合計・種目別の推定1RMとボリューム）
+// 統計の画面（今月のサマリー・全期間の合計・種目別の最高重量とボリューム）
 import { exerciseTotals, overallTotals } from '../stats.ts';
 import { state } from '../state.ts';
 import { byId, esc } from '../ui.ts';
@@ -19,9 +19,9 @@ export function renderStats(): void {
 
   const exs = [...exerciseTotals(state.workouts)];
   const empty = '<div style="font-size:13px;color:var(--text2)">記録後に表示されます</div>';
-  byId('rm-list').innerHTML = exs.length ? [...exs].sort((a, b) => b[1].rm - a[1].rm).map(([ex, d]) => `
+  byId('rm-list').innerHTML = exs.length ? [...exs].sort((a, b) => b[1].best - a[1].best).map(([ex, d]) => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--border)">
-      <span style="font-size:14px">${esc(ex)}</span><span class="rm-chip">${d.rm} kg</span>
+      <span style="font-size:14px">${esc(ex)}</span><span class="rm-chip">${d.best} kg</span>
     </div>`).join('') : empty;
 
   const maxV = Math.max(...exs.map(e => e[1].vol), 1);

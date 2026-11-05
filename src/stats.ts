@@ -1,11 +1,6 @@
 // 集計（画面に出す数字）。DOM に触れない純粋な関数だけ。
 import type { SetEntry, Workout } from './types.ts';
 
-/** 推定 1RM（Epley の式）。1回ならそのまま、それ以外は 重量 ×（1 + 回数 / 30） を四捨五入 */
-export function calc1RM(kg: number, reps: number): number {
-  return reps === 1 ? kg : Math.round(kg * (1 + reps / 30));
-}
-
 /** 1回のトレーニングの総ボリューム（重量 × 回数の合計） */
 export function volume(w: Workout): number {
   return w.sets.reduce((a, s) => a + s.kg * s.reps, 0);
@@ -48,7 +43,7 @@ export interface MonthStats {
   prCount: number;
 }
 
-/** 月ごとの集計。m は 0 始まり。記録更新種目数は、その月の最大推定 1RM が月より前の最大を超えた種目の数 */
+/** 月ごとの集計。m は 0 始まり。記録更新種目数は、その月の最高重量が月より前の最高重量を超えた種目の数（実際に上がった重量で比べる。推定はしない） */
 export function computeMonthStats(workouts: Workout[], y: number, m: number): MonthStats {
   const start = new Date(y, m, 1);
   const end = new Date(y, m + 1, 1);
@@ -62,13 +57,12 @@ export function computeMonthStats(workouts: Workout[], y: number, m: number): Mo
     const inMonth = d >= start && d < end;
     const before = d < start;
     for (const s of w.sets) {
-      const rm = calc1RM(s.kg, s.reps);
       if (inMonth) {
         const cur = monthMax.get(s.ex);
-        if (!cur || rm > cur) monthMax.set(s.ex, rm);
+        if (!cur || s.kg > cur) monthMax.set(s.ex, s.kg);
       } else if (before) {
         const cur = priorMax.get(s.ex);
-        if (!cur || rm > cur) priorMax.set(s.ex, rm);
+        if (!cur || s.kg > cur) priorMax.set(s.ex, s.kg);
       }
     }
     if (inMonth) {
@@ -109,19 +103,19 @@ export function previousMonth(y: number, m: number): { y: number; m: number } {
 }
 
 export interface ExerciseTotal {
-  rm: number;
+  /** 最高重量: その種目で実際に上がった最高の重量（回数は問わない） */
+  best: number;
   vol: number;
 }
 
-/** 全期間の種目別の最大推定 1RM と合計ボリューム（最初に出てきた順） */
+/** 全期間の種目別の最高重量と合計ボリューム（最初に出てきた順） */
 export function exerciseTotals(workouts: Workout[]): Map<string, ExerciseTotal> {
   const by = new Map<string, ExerciseTotal>();
   for (const w of workouts) {
     for (const s of w.sets) {
       let t = by.get(s.ex);
-      if (!t) { t = { rm: 0, vol: 0 }; by.set(s.ex, t); }
-      const rm = calc1RM(s.kg, s.reps);
-      if (rm > t.rm) t.rm = rm;
+      if (!t) { t = { best: 0, vol: 0 }; by.set(s.ex, t); }
+      if (s.kg > t.best) t.best = s.kg;
       t.vol += s.kg * s.reps;
     }
   }
@@ -137,4 +131,34 @@ export function overallTotals(workouts: Workout[]): { sessions: number; sets: nu
     // 日数は ISO 時刻の日付部分（UTC の日）で数える。今までの版と同じ
     days: new Set(workouts.map(w => w.date.split('T')[0])).size,
   };
+}
+
+// ---------- 前回の記録（記録画面で種目を選んだとき） ----------
+
+export interface LastSession {
+  /** そのトレーニングの日時（ISO） */
+  date: string;
+  /** その種目のセットだけ（入力した順） */
+  sets: SetEntry[];
+}
+
+/** その種目の前回の記録。workouts は新しい順。その種目のセットを含む、いちばん新しいトレーニング。なければ null */
+export function lastSession(workouts: Workout[], exercise: string): LastSession | null {
+  for (const w of workouts) {
+    const sets = w.sets.filter(s => s.ex === exercise);
+    if (sets.length) return { date: w.date, sets };
+  }
+  return null;
+}
+
+/** 端末の日付で、from から to まで何日か（時刻は見ない。同じ日は 0） */
+export function daysBetween(from: Date, to: Date): number {
+  const a = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+  const b = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+  return Math.round((b - a) / 86400000);
+}
+
+/** 「今日」「昨日」「3日前」 */
+export function formatDaysAgo(days: number): string {
+  return days <= 0 ? '今日' : days === 1 ? '昨日' : `${days}日前`;
 }

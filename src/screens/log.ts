@@ -3,6 +3,7 @@ import { saveWorkoutChanges } from '../gym-rows.ts';
 import { state } from '../state.ts';
 import { commit, newId } from '../sync.ts';
 import { byId, esc, toast } from '../ui.ts';
+import { renderLastSession } from './last.ts';
 
 export function renderLogDate(): void {
   byId('log-date').textContent = state.now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
@@ -62,5 +63,6 @@ export function saveWorkout(): void {
   if (!commit(rows => saveWorkoutChanges(rows, state.sets, new Date(), newId))) return;
   state.sets = [];
   renderSets();
+  renderLastSession(); // 今保存した記録が、次の「前回」になる
   toast('保存しました ✓');
 }
