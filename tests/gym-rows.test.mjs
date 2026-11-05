@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   rowsToView, jstDate, rpeValue, assertSet, saveWorkoutChanges, deleteWorkoutChanges,
-  addExerciseChanges, deleteExerciseChanges, moveExerciseChanges, workoutKey, newWorkouts, importChanges,
+  addExerciseChanges, deleteExerciseChanges, moveExerciseChanges, workoutKey, newWorkouts, importChanges, setMusclesChanges,
 } from '../src/gym-rows.ts';
 import { applyChanges, checkChanges, MAX_CHANGES_PER_OP } from '../src/data.ts';
 
@@ -96,9 +96,9 @@ test('トレーニングを消す: 先にセットを消す（D23）', () => {
 });
 
 test('種目を足す・消す・戻す・並べ替える', () => {
-  const add = addExerciseChanges(rows(), 'デッドリフト', newId);
+  const add = addExerciseChanges(rows(), '自分だけの種目', newId);
   assert.equal(add[0].action, 'insert');
-  assert.deepEqual(add[0].row, { name: 'デッドリフト', position: 3, deleted_at: null });
+  assert.deepEqual(add[0].row, { name: '自分だけの種目', position: 3, deleted_at: null });
   // 消した種目と同じ名前を足すと、戻す（過去の記録とつながったまま）
   const back = addExerciseChanges(rows(), '昔の種目', newId);
   assert.deepEqual(back, [{ table: 'gym_exercises', action: 'update', id: 'e3', row: { deleted_at: null, position: 3 } }]);
@@ -140,4 +140,40 @@ test('取り込み: 種目が先、記録はまとめて。1回の操作は500�
 
 test('取り込み: 範囲外のセットは、何も作らずエラー', () => {
   assert.throws(() => importChanges(rows(), [{ date: new Date().toISOString(), sets: [set('a', 60, 0)] }], null, new Date(), newId), /回数/);
+});
+
+test('行から、種目の部位（主1つ＋補助）も読む。部位のない種目は未設定', () => {
+  const r = rows();
+  r.gym_exercises[0] = { ...r.gym_exercises[0], primary_muscle: 'chest', secondary_muscles: ['delt_front', 'triceps'] };
+  const infos = rowsToView(r).exerciseInfos;
+  assert.deepEqual(infos.map(e => e.name), ['ベンチ', 'スクワット'], '消した種目は入らない');
+  assert.deepEqual(infos[0], { id: 'e1', name: 'ベンチ', primary: 'chest', secondary: ['delt_front', 'triceps'] });
+  assert.deepEqual([infos[1].primary, infos[1].secondary], [null, []]);
+  // 知らない値は読み捨てる（DB の check があるので、通常は来ない）
+  r.gym_exercises[1] = { ...r.gym_exercises[1], primary_muscle: 'legs', secondary_muscles: ['quads', 'wing'] };
+  assert.deepEqual([rowsToView(r).exerciseInfos[1].primary, rowsToView(r).exerciseInfos[1].secondary], [null, ['quads']]);
+});
+
+test('部位を設定する: 主と補助。主は補助に入れない・知らない部位は断る', () => {
+  const ch = setMusclesChanges(rows(), 'e1', 'chest', ['triceps', 'delt_front', 'triceps']);
+  assert.deepEqual(ch, [{ table: 'gym_exercises', action: 'update', id: 'e1', row: { primary_muscle: 'chest', secondary_muscles: ['triceps', 'delt_front'] } }]);
+  assert.equal(checkChanges(ch).length, 1);
+  assert.deepEqual(setMusclesChanges(rows(), 'e1', null, [])[0].row, { primary_muscle: null, secondary_muscles: [] }, '未設定に戻せる');
+  assert.throws(() => setMusclesChanges(rows(), 'e1', 'chest', ['chest']), /補助にも/);
+  assert.throws(() => setMusclesChanges(rows(), 'e1', 'legs', []), /知らない部位/);
+  assert.throws(() => setMusclesChanges(rows(), 'e1', 'chest', ['wing']), /知らない部位/);
+  assert.throws(() => setMusclesChanges(rows(), 'ない', 'chest', []), /見つかりません/);
+  // 画面の形に重ねると、部位が出る
+  const v = rowsToView(applyChanges(rows(), ch, 'now'));
+  assert.deepEqual([v.exerciseInfos[0].primary, v.exerciseInfos[0].secondary], ['chest', ['triceps', 'delt_front']]);
+});
+
+test('種目を足すとき、標準の割り当てがある名前なら部位を最初から入れる', () => {
+  const known = addExerciseChanges(rows(), 'ダンベルサイドレイズ', newId);
+  assert.deepEqual([known[0].row.primary_muscle, known[0].row.secondary_muscles], ['delt_side', ['upper_back']]);
+  const unknown = addExerciseChanges(rows(), '自分だけの種目', newId);
+  assert.ok(!('primary_muscle' in unknown[0].row), '知らない名前は、部位なし（未設定）');
+  // 消した種目を戻すときは、前の部位のまま（上書きしない）
+  const back = addExerciseChanges(rows(), '昔の種目', newId);
+  assert.deepEqual(back[0].row, { deleted_at: null, position: 3 });
 });

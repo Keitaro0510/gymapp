@@ -106,6 +106,7 @@ export function rebuildView(): boolean {
   const view = rowsToView(currentRows());
   state.workouts = view.workouts;
   state.exercises = view.exercises;
+  state.exerciseInfos = view.exerciseInfos;
   return true;
 }
 
