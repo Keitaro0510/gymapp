@@ -107,6 +107,7 @@ export function rebuildView(): boolean {
   state.workouts = view.workouts;
   state.exercises = view.exercises;
   state.exerciseInfos = view.exerciseInfos;
+  state.partsByName = view.partsByName;
   return true;
 }
 

@@ -62,6 +62,16 @@
     <button class="btn btn-primary btn-block" style="flex:1" data-action="save-workout">💾 保存</button>
     <button class="btn btn-danger" data-action="clear-sets">🗑</button>
   </div>
+
+  <!-- 今日の負荷: 今日トレーニングした部位が赤くなる（src/screens/body.ts） -->
+  <div class="card" style="margin-top:12px">
+    <div style="font-size:14px;font-weight:500;margin-bottom:4px">🔥 今日の負荷</div>
+    <div class="body-sub" id="body-sub"></div>
+    <div class="body-figs" id="body-figs"></div>
+    <div class="body-legend"><span>軽い</span><span class="body-grad"></span><span>重い</span></div>
+    <div class="body-chips" id="body-chips"></div>
+    <div class="body-note" id="body-note"></div>
+  </div>
 </div>
 
 <!-- TIMER -->

@@ -9,6 +9,7 @@ import { addEx, cancelEditMuscles, delEx, moveEx, renderExList, renderExSelect, 
 import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
 import { renderLastSession } from './screens/last.ts';
+import { renderBody } from './screens/body.ts';
 import { renderStats } from './screens/stats.ts';
 import { initTimer, isTimerRunning, resetTimer, setCustom, setDur, toggleTimer } from './screens/timer.ts';
 import { state } from './state.ts';
@@ -32,7 +33,7 @@ function showTab(name: TabName): void {
 /** 開いている画面を描き直す（タブを開いたときと、サーバーから読み込み直したとき） */
 function renderCurrentSection(): void {
   renderExSelect();
-  if (currentTab === 'log') renderSets();
+  if (currentTab === 'log') { renderSets(); renderBody(); }
   if (currentTab === 'ex') renderExList();
   if (currentTab === 'cal') renderCal();
   if (currentTab === 'hist') renderHist();

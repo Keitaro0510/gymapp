@@ -2,7 +2,7 @@
 // - 行 → 画面: rowsToView
 // - 画面の操作 → 変更の列（src/data.ts の Change）: 種目名を ID に直し、トレーニングを消すときは先にセットを消す（D23）
 import { MAX_CHANGES_PER_OP, type Change, type Row, type Rows } from './data.ts';
-import { DEFAULT_PARTS, isMuscle, type Muscle } from './muscles.ts';
+import { DEFAULT_PARTS, isMuscle, type Muscle, type Parts } from './muscles.ts';
 import type { SetEntry, StoredWorkout, Workout } from './types.ts';
 
 /** 消していない種目（画面が使う形）。部位は、主1つ（なければ null）と補助（複数） */
@@ -20,6 +20,8 @@ export interface View {
   exercises: string[];
   /** 消していない種目（並び順。部位つき） */
   exerciseInfos: ExerciseInfo[];
+  /** 種目名 → 部位（消した種目も含む。過去の記録の部位を数えるため。同じ名前なら消していない種目が優先） */
+  partsByName: Map<string, Parts>;
 }
 
 const num = (v: unknown): number => Number(v);
@@ -60,7 +62,15 @@ export function rowsToView(rows: Rows): View {
     primary: isMuscle(r.primary_muscle) ? r.primary_muscle : null,
     secondary: Array.isArray(r.secondary_muscles) ? r.secondary_muscles.filter(isMuscle) : [],
   }));
-  return { workouts, exercises: exerciseInfos.map(e => e.name), exerciseInfos };
+  const partsByName = new Map<string, Parts>();
+  for (const r of [...exRows.filter(r => r.deleted_at), ...active]) { // 消した種目を先に入れ、消していない種目で上書きする
+    if (!isMuscle(r.primary_muscle)) continue;
+    partsByName.set(String(r.name), {
+      primary: r.primary_muscle,
+      secondary: Array.isArray(r.secondary_muscles) ? r.secondary_muscles.filter(isMuscle) : [],
+    });
+  }
+  return { workouts, exercises: exerciseInfos.map(e => e.name), exerciseInfos, partsByName };
 }
 
 // ---------- 値の確かめ（DB の制約に合うか。合わないと、送るときに操作ごと断られる） ----------
