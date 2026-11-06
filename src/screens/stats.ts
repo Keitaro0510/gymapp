@@ -5,6 +5,7 @@ import {
   periodSeries, recentRecords, sinceMonths, type PeriodKind,
 } from '../stats.ts';
 import { state } from '../state.ts';
+import { renderBalance } from './balance.ts';
 import { renderFrequency } from './frequency.ts';
 import { byId, esc } from '../ui.ts';
 
@@ -171,6 +172,7 @@ export function renderStats(): void {
   renderVolumeChart();
   renderBest();
   renderFrequency();
+  renderBalance(period);
 
   const t = overallTotals(state.workouts);
   const tv = t.volume;

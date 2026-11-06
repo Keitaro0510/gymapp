@@ -64,7 +64,11 @@
 
   <!-- 今日の負荷: 今日トレーニングした部位が赤くなる（src/screens/body.ts） -->
   <div class="card" style="margin-top:12px">
-    <div style="font-size:14px;font-weight:500;margin-bottom:4px">🔥 今日の負荷</div>
+    <div style="font-size:14px;font-weight:500;margin-bottom:6px" id="body-title">🔥 今日の負荷</div>
+    <div class="seg" id="body-seg" style="margin-bottom:8px">
+      <button class="seg-btn" data-action="body-range" data-range="day">今日</button>
+      <button class="seg-btn" data-action="body-range" data-range="week">今週</button>
+    </div>
     <div class="body-sub" id="body-sub"></div>
     <div class="body-figs" id="body-figs"></div>
     <div class="body-legend"><span>軽い</span><span class="body-grad"></span><span>重い</span></div>
@@ -172,6 +176,13 @@
     <div style="font-size:14px;font-weight:500;margin-bottom:2px">部位ごとの、最後にやってから</div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:8px">主に使う部位でやった日で数えます（補助だけの日は数えません）。7日以上あいた部位を赤くします。</div>
     <div id="muscle-gaps"></div>
+  </div>
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:2px" id="balance-title">部位バランス</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">部位ごとのボリュームの割合です（主に使う部位は100%、補助の部位は50%で数えます）。偏りを見ます。</div>
+    <div id="balance-groups"></div>
+    <div id="balance-list"></div>
+    <div class="body-note" id="balance-note"></div>
   </div>
   <div class="card">
     <div style="font-size:14px;font-weight:500;margin-bottom:2px">年間のトレーニング</div>

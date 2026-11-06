@@ -9,7 +9,7 @@ import { addEx, cancelEditMuscles, delEx, moveEx, renderExList, renderExSelect, 
 import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
 import { renderLastSession } from './screens/last.ts';
-import { renderBody } from './screens/body.ts';
+import { renderBody, setBodyRange } from './screens/body.ts';
 import { changeGoal } from './screens/frequency.ts';
 import { renderStats, setBestExercise, setBestRange, setStatsPeriod } from './screens/stats.ts';
 import { state } from './state.ts';
@@ -49,6 +49,7 @@ const actions: Record<string, (el: HTMLElement) => void> = {
   'best-range': el => setBestRange(el.dataset.range === 'all' ? 'all' : '3m'),
   'goal-dec': () => changeGoal(-1),
   'goal-inc': () => changeGoal(1),
+  'body-range': el => setBodyRange(el.dataset.range === 'week' ? 'week' : 'day'),
   'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
   'save-workout': saveWorkout,
