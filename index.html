@@ -38,7 +38,10 @@
     <div style="font-size:13px;color:var(--text2);margin-bottom:12px" id="log-date"></div>
     <div style="margin-bottom:10px">
       <label class="lbl">種目</label>
-      <select id="ex-sel"></select>
+      <div style="display:flex;gap:8px">
+        <select id="ex-sel" style="flex:1;min-width:0"></select>
+        <button class="btn" data-action="open-exercise-current" aria-label="この種目のやり方・メモ">📖</button>
+      </div>
       <div id="last-session"></div>
     </div>
     <div class="row3" style="margin-bottom:10px">
@@ -214,6 +217,11 @@
 </nav>
 
 <div id="toast"></div>
+
+<!-- 種目の詳細シート（やり方のメモ・動画のリンク。src/screens/exercise-sheet.ts） -->
+<div id="ex-sheet">
+  <div class="sheet" id="ex-sheet-body"></div>
+</div>
 
 <!-- ログイン画面（ログインしていないときだけ出す）。maney-app と同じ Google アカウントでログインする -->
 <div id="login-screen">
