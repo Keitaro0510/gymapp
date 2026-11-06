@@ -10,6 +10,7 @@ import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
 import { renderLastSession } from './screens/last.ts';
 import { renderBody } from './screens/body.ts';
+import { changeGoal } from './screens/frequency.ts';
 import { renderStats, setBestExercise, setBestRange, setStatsPeriod } from './screens/stats.ts';
 import { state } from './state.ts';
 import type { SupaClient } from './data.ts';
@@ -46,6 +47,8 @@ const actions: Record<string, (el: HTMLElement) => void> = {
   'tab': el => showTab(el.dataset.tab as TabName),
   'stats-period': el => setStatsPeriod(el.dataset.period === 'month' ? 'month' : 'week'),
   'best-range': el => setBestRange(el.dataset.range === 'all' ? 'all' : '3m'),
+  'goal-dec': () => changeGoal(-1),
+  'goal-inc': () => changeGoal(1),
   'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
   'save-workout': saveWorkout,

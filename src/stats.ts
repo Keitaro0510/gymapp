@@ -1,4 +1,5 @@
 // 集計（画面に出す数字）。DOM に触れない純粋な関数だけ。
+import { MUSCLES, type Muscle, type Parts } from './muscles.ts';
 import type { SetEntry, Workout } from './types.ts';
 
 /** 1回のトレーニングの総ボリューム（重量 × 回数の合計） */
@@ -218,6 +219,8 @@ export interface PeriodPoint {
   start: Date;
   /** その期間の総ボリューム（重量×回数）。今の期間は、今日までの分 */
   volume: number;
+  /** その期間にトレーニングした日数（同じ日に2回でも1日） */
+  days: number;
   current: boolean;
 }
 
@@ -228,7 +231,8 @@ export function periodSeries(workouts: Workout[], kind: PeriodKind, now: Date, c
   for (let i = count - 1; i >= 0; i--) {
     const start = shiftPeriod(kind, curStart, -i);
     const end = shiftPeriod(kind, start, 1);
-    out.push({ start, volume: summarizeRange(workouts, start, end).totalWeight, current: i === 0 });
+    const sum = summarizeRange(workouts, start, end);
+    out.push({ start, volume: sum.totalWeight, days: sum.days, current: i === 0 });
   }
   return out;
 }
@@ -318,4 +322,85 @@ export function recentRecords(points: BestPoint[], limit = 5): { point: BestPoin
 export function sinceMonths(points: BestPoint[], now: Date, months: number): BestPoint[] {
   const from = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
   return points.filter(p => p.date >= from);
+}
+
+// ---------- 頻度（#17） ----------
+
+export interface MuscleGap {
+  muscle: Muscle;
+  /** 最後に、その部位を主に使うトレーニングをしてから何日（今日は 0）。一度もなければ null */
+  days: number | null;
+}
+
+/**
+ * 部位ごとの「最後にやってから何日」。その部位が、種目の主の部位になっているセットをやった日で数える（補助だけの日は数えない）。
+ * 長く空いている部位が先。一度もやっていない部位（null）は、いちばん先に出す。同じ日数は、部位の一覧の順
+ */
+export function muscleGaps(workouts: Workout[], partsByName: ReadonlyMap<string, Parts>, now: Date): MuscleGap[] {
+  const last = new Map<Muscle, Date>();
+  for (const w of workouts) {
+    const d = new Date(w.date);
+    for (const s of w.sets) {
+      const m = partsByName.get(s.ex)?.primary;
+      if (!m) continue;
+      const cur = last.get(m);
+      if (!cur || d > cur) last.set(m, d);
+    }
+  }
+  const gaps = MUSCLES.map((m): MuscleGap => {
+    const d = last.get(m.id);
+    return { muscle: m.id, days: d ? Math.max(0, daysBetween(d, now)) : null };
+  });
+  const order = (g: MuscleGap): number => (g.days === null ? Infinity : g.days);
+  return gaps
+    .map((g, i) => ({ g, i }))
+    .sort((a, b) => (order(b.g) - order(a.g)) || (a.i - b.i))
+    .map(x => x.g);
+}
+
+export interface HeatCell {
+  /** 左から何列目（週）・上から何行目（月曜 0 … 日曜 6） */
+  col: number;
+  row: number;
+  date: Date;
+  /** その日の総ボリューム（kg） */
+  volume: number;
+  /** 色の濃さ 0〜1（その人の、トレーニングした日のボリュームの上位10%の日を 1 として割合） */
+  level: number;
+  /** まだ来ていない日 */
+  future: boolean;
+}
+
+/** 日ごとの総ボリューム */
+export function dailyVolumes(workouts: Workout[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const w of workouts) {
+    const k = dayKey(new Date(w.date));
+    m.set(k, (m.get(k) ?? 0) + volume(w));
+  }
+  return m;
+}
+
+/** 上位10%（nearest-rank の 90 パーセンタイル）。値がなければ 0 */
+export function percentile90(values: number[]): number {
+  const v = values.filter(x => x > 0).sort((a, b) => a - b);
+  if (!v.length) return 0;
+  return v[Math.max(0, Math.ceil(v.length * 0.9) - 1)] as number;
+}
+
+/** 年間のヒートマップ（直近 weeks 週。今の週が右の端。週は月曜始まり） */
+export function heatmapCells(workouts: Workout[], now: Date, weeks = 52): { cells: HeatCell[]; ref: number } {
+  const daily = dailyVolumes(workouts);
+  const ref = percentile90([...daily.values()]);
+  const start = shiftPeriod('week', periodStart('week', now), -(weeks - 1));
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const cells: HeatCell[] = [];
+  for (let col = 0; col < weeks; col++) {
+    for (let row = 0; row < 7; row++) {
+      const date = addDays(start, col * 7 + row);
+      const volume = daily.get(dayKey(date)) ?? 0;
+      cells.push({ col, row, date, volume, level: ref > 0 ? Math.min(1, volume / ref) : 0, future: date > today });
+    }
+  }
+  return { cells, ref };
 }
