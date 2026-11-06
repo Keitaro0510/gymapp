@@ -126,8 +126,21 @@
 
 <!-- STATS -->
 <div class="section" id="sec-stats">
-  <div class="redstat-section-lbl" id="stats-month-lbl">今月のサマリー</div>
-  <div class="redstat-grid" id="stats-redstats"></div>
+  <!-- 期間の切り替え（週 / 月）。選んだほうが、比較のカードとグラフの単位になる -->
+  <div class="seg" id="stats-seg">
+    <button class="seg-btn" data-action="stats-period" data-period="week">週</button>
+    <button class="seg-btn" data-action="stats-period" data-period="month">月</button>
+  </div>
+
+  <div class="redstat-section-lbl" id="cmp-title"></div>
+  <div class="cmp-grid" id="cmp-cards"></div>
+
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:2px" id="vol-chart-title">ボリュームの推移</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="chart-readout">棒をタップすると、値が出ます</div>
+    <div id="vol-chart"></div>
+  </div>
+
   <div class="redstat-section-lbl">全期間の統計</div>
   <div class="stat-grid" id="stats-top"></div>
   <div class="card">

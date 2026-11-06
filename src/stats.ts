@@ -43,30 +43,31 @@ export interface MonthStats {
   prCount: number;
 }
 
-/** 月ごとの集計。m は 0 始まり。記録更新種目数は、その月の最高重量が月より前の最高重量を超えた種目の数（実際に上がった重量で比べる。推定はしない） */
-export function computeMonthStats(workouts: Workout[], y: number, m: number): MonthStats {
-  const start = new Date(y, m, 1);
-  const end = new Date(y, m + 1, 1);
-  const days = new Set<number>();
+/**
+ * 期間 [start, end) の集計。start・end は端末の日付（0時）。日数は端末の日付で数える。
+ * 記録更新種目数は、その期間の最高重量が、期間より前の最高重量を超えた種目の数（実際に上がった重量で比べる。推定はしない）
+ */
+export function summarizeRange(workouts: Workout[], start: Date, end: Date): MonthStats {
+  const days = new Set<string>();
   let totalWeight = 0, totalSets = 0, totalReps = 0;
   const exSet = new Set<string>();
-  const monthMax = new Map<string, number>();
+  const rangeMax = new Map<string, number>();
   const priorMax = new Map<string, number>();
   for (const w of workouts) {
     const d = new Date(w.date);
-    const inMonth = d >= start && d < end;
+    const inRange = d >= start && d < end;
     const before = d < start;
     for (const s of w.sets) {
-      if (inMonth) {
-        const cur = monthMax.get(s.ex);
-        if (!cur || s.kg > cur) monthMax.set(s.ex, s.kg);
+      if (inRange) {
+        const cur = rangeMax.get(s.ex);
+        if (!cur || s.kg > cur) rangeMax.set(s.ex, s.kg);
       } else if (before) {
         const cur = priorMax.get(s.ex);
         if (!cur || s.kg > cur) priorMax.set(s.ex, s.kg);
       }
     }
-    if (inMonth) {
-      days.add(d.getDate());
+    if (inRange) {
+      days.add(dayKey(d));
       totalSets += w.sets.length;
       for (const s of w.sets) {
         totalWeight += s.kg * s.reps;
@@ -76,11 +77,16 @@ export function computeMonthStats(workouts: Workout[], y: number, m: number): Mo
     }
   }
   let prCount = 0;
-  for (const [ex, max] of monthMax) {
+  for (const [ex, max] of rangeMax) {
     const prior = priorMax.get(ex);
     if (!prior || max > prior) prCount++;
   }
   return { days: days.size, totalWeight, totalSets, totalReps, exCount: exSet.size, prCount };
+}
+
+/** 月ごとの集計。m は 0 始まり */
+export function computeMonthStats(workouts: Workout[], y: number, m: number): MonthStats {
+  return summarizeRange(workouts, new Date(y, m, 1), new Date(y, m + 1, 1));
 }
 
 /** 前の月と比べた表示（赤いカードの括弧の中）と、トン表示 */
@@ -161,4 +167,81 @@ export function daysBetween(from: Date, to: Date): number {
 /** 「今日」「昨日」「3日前」 */
 export function formatDaysAgo(days: number): string {
   return days <= 0 ? '今日' : days === 1 ? '昨日' : `${days}日前`;
+}
+
+// ---------- 期間（週・月）の比較と推移（統計画面） ----------
+
+export type PeriodKind = 'week' | 'month';
+
+export function addDays(d: Date, n: number): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+
+/** d を含む期間の始まり（端末の日付の0時）。週は月曜始まり、月は1日 */
+export function periodStart(kind: PeriodKind, d: Date): Date {
+  if (kind === 'month') return new Date(d.getFullYear(), d.getMonth(), 1);
+  const sinceMonday = (d.getDay() + 6) % 7; // 月曜 0 … 日曜 6
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - sinceMonday);
+}
+
+/** 期間の始まりを n 期間ずらす（負なら前） */
+export function shiftPeriod(kind: PeriodKind, start: Date, n: number): Date {
+  return kind === 'month' ? new Date(start.getFullYear(), start.getMonth() + n, 1) : addDays(start, 7 * n);
+}
+
+export interface PeriodComparison {
+  cur: MonthStats;
+  prev: MonthStats;
+  /** 今の期間が始まってから今日まで何日目か（今日を含む） */
+  elapsed: number;
+  curStart: Date;
+  prevStart: Date;
+}
+
+/**
+ * 今の期間（今日まで）と、前の期間の「同じ日数まで」を比べる。
+ * 今週が水曜なら、今週の月〜水と、先週の月〜水。今月が6日なら、今月の1〜6日と、先月の1〜6日（先月が短いときは、先月の終わりまで）
+ */
+export function comparePeriods(workouts: Workout[], kind: PeriodKind, now: Date): PeriodComparison {
+  const curStart = periodStart(kind, now);
+  const elapsed = daysBetween(curStart, now) + 1;
+  const prevStart = shiftPeriod(kind, curStart, -1);
+  const prevEnd = new Date(Math.min(addDays(prevStart, elapsed).getTime(), curStart.getTime()));
+  return {
+    cur: summarizeRange(workouts, curStart, addDays(curStart, elapsed)),
+    prev: summarizeRange(workouts, prevStart, prevEnd),
+    elapsed, curStart, prevStart,
+  };
+}
+
+export interface PeriodPoint {
+  start: Date;
+  /** その期間の総ボリューム（重量×回数）。今の期間は、今日までの分 */
+  volume: number;
+  current: boolean;
+}
+
+/** 直近 count 期間（古い順。最後が今の期間）の総ボリューム */
+export function periodSeries(workouts: Workout[], kind: PeriodKind, now: Date, count = 12): PeriodPoint[] {
+  const curStart = periodStart(kind, now);
+  const out: PeriodPoint[] = [];
+  for (let i = count - 1; i >= 0; i--) {
+    const start = shiftPeriod(kind, curStart, -i);
+    const end = shiftPeriod(kind, start, 1);
+    out.push({ start, volume: summarizeRange(workouts, start, end).totalWeight, current: i === 0 });
+  }
+  return out;
+}
+
+/** 前の期間との差の表示。count は「+2」「±0」「-1」、volume は「+12.5%」「NEW」「±0%」 */
+export function formatDiff(kind: 'count' | 'volume', cur: number, prev: number): string {
+  if (kind === 'count') {
+    const d = cur - prev;
+    return d === 0 ? '±0' : d > 0 ? `+${d}` : `${d}`;
+  }
+  if (prev > 0) {
+    const pct = (cur - prev) / prev * 100;
+    return (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+  }
+  return cur > 0 ? 'NEW' : '±0%';
 }

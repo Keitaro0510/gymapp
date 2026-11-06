@@ -10,7 +10,7 @@ import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
 import { renderLastSession } from './screens/last.ts';
 import { renderBody } from './screens/body.ts';
-import { renderStats } from './screens/stats.ts';
+import { renderStats, setStatsPeriod } from './screens/stats.ts';
 import { state } from './state.ts';
 import type { SupaClient } from './data.ts';
 import { initSync, resyncRemote } from './sync.ts';
@@ -44,6 +44,7 @@ function renderCurrentSection(): void {
 const num = (el: HTMLElement, key: string): number => Number(el.dataset[key]);
 const actions: Record<string, (el: HTMLElement) => void> = {
   'tab': el => showTab(el.dataset.tab as TabName),
+  'stats-period': el => setStatsPeriod(el.dataset.period === 'month' ? 'month' : 'week'),
   'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
   'save-workout': saveWorkout,
