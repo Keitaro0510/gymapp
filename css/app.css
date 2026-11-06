@@ -241,3 +241,22 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .body-chip { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; color: var(--text); background: color-mix(in srgb, var(--accent) calc(var(--t) * 70% + 12%), var(--bg2)); }
 .body-note { font-size: 12px; color: var(--text2); margin-top: 8px; }
 
+
+/* Stats（週・月の切り替え・比較・グラフ） */
+.seg { display: flex; background: var(--bg2); border-radius: var(--radius); padding: 3px; margin-bottom: 12px; }
+.seg-btn { flex: 1; padding: 8px 0; border: none; border-radius: 8px; background: none; color: var(--text2); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.seg-btn.active { background: var(--accent); color: #fff; }
+.cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.cmp-card { background: var(--bg2); border-radius: var(--radius); padding: 12px; }
+.cmp-lbl { font-size: 12px; color: var(--text2); }
+.cmp-num { font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 2px; }
+.cmp-num small { font-size: 13px; font-weight: 600; margin-left: 1px; }
+.cmp-diff { font-size: 12px; font-weight: 700; margin-top: 2px; color: var(--text2); }
+.cmp-diff.up { color: var(--accent-text); }
+.cmp-prev { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.chart-svg { width: 100%; height: auto; display: block; }
+.chart-grid line { stroke: var(--border); stroke-width: 0.6; }
+.chart-grid text, .chart-xl { fill: var(--text2); font-size: 9px; }
+.chart-bar { fill: var(--accent); fill-opacity: 0.45; cursor: pointer; }
+.chart-bar.current { fill-opacity: 1; }
+.chart-bar.sel { stroke: var(--text); stroke-width: 1; }
