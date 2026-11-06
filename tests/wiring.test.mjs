@@ -33,7 +33,7 @@ test('モジュールの入口は src/main.ts だけ', () => {
 
 test('下のナビのタブは、すべて対応する画面がある', () => {
   const tabs = [...html.matchAll(/data-action="tab" data-tab="([a-z]+)"/g)].map(m => m[1]);
-  assert.deepEqual(tabs, ['log', 'timer', 'cal', 'hist', 'ex', 'stats']);
+  assert.deepEqual(tabs, ['log', 'cal', 'hist', 'ex', 'stats']);
   for (const t of tabs) assert.match(html, new RegExp(`id="sec-${t}"`));
 });
 
