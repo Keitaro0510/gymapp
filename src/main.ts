@@ -11,7 +11,6 @@ import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } 
 import { renderLastSession } from './screens/last.ts';
 import { renderBody } from './screens/body.ts';
 import { renderStats } from './screens/stats.ts';
-import { initTimer, isTimerRunning, resetTimer, setCustom, setDur, toggleTimer } from './screens/timer.ts';
 import { state } from './state.ts';
 import type { SupaClient } from './data.ts';
 import { initSync, resyncRemote } from './sync.ts';
@@ -19,7 +18,7 @@ import { createSupa } from './supa.ts';
 import { byId, toast } from './ui.ts';
 
 // ── タブ ──
-type TabName = 'log' | 'timer' | 'cal' | 'hist' | 'ex' | 'stats';
+type TabName = 'log' | 'cal' | 'hist' | 'ex' | 'stats';
 let currentTab: TabName = 'log';
 
 function showTab(name: TabName): void {
@@ -40,12 +39,6 @@ function renderCurrentSection(): void {
   if (currentTab === 'stats') renderStats();
 }
 
-/** 記録画面の「レスト」: タイマーに移って、止まっていれば始める */
-function goTimer(): void {
-  showTab('timer');
-  setTimeout(() => { if (!isTimerRunning()) toggleTimer(); }, 100);
-}
-
 // ── ボタン ──
 // 画面に data-action="名前" のボタンがあり、押されたらここの同じ名前の関数を呼ぶ（index.html に onclick は書かない）
 const num = (el: HTMLElement, key: string): number => Number(el.dataset[key]);
@@ -53,14 +46,9 @@ const actions: Record<string, (el: HTMLElement) => void> = {
   'tab': el => showTab(el.dataset.tab as TabName),
   'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
-  'go-timer': goTimer,
   'save-workout': saveWorkout,
   'clear-sets': clearSets,
   'rm-set': el => removeSet(num(el, 'index')),
-  'set-dur': el => setDur(num(el, 'sec')),
-  'toggle-timer': toggleTimer,
-  'reset-timer': resetTimer,
-  'set-custom': setCustom,
   'change-month': el => changeMonth(num(el, 'dir')),
   'del-workout': el => delWorkout(num(el, 'index')),
   'add-ex': addEx,
@@ -128,7 +116,6 @@ window.addEventListener('online', () => { void resyncRemote(); });
 renderLogDate();
 renderExSelect();
 renderExList();
-initTimer();
 updateSyncStatus();
 void loadData();
 
