@@ -1,5 +1,5 @@
-// カレンダーの画面（月の表・日ごとの詳細・直近52週）
-import { dayKey, groupByExercise, volume, workoutsByDay } from '../stats.ts';
+// カレンダーの画面（月の表・日ごとの詳細）。直近52週は、統計の「年間のトレーニング」（ヒートマップ）に移した
+import { groupByExercise, volume, workoutsByDay } from '../stats.ts';
 import { state } from '../state.ts';
 import type { Workout } from '../types.ts';
 import { byId, esc } from '../ui.ts';
@@ -41,18 +41,6 @@ export function renderCal(): void {
     if (c.m === 'c' && ws.length) div.onclick = () => showCalDetail(c.d, ws);
     grid.appendChild(div);
   }
-
-  // 直近52週（364日）
-  const start = new Date(now);
-  start.setDate(start.getDate() - 363);
-  let html = '';
-  for (let i = 0; i < 364; i++) {
-    const d = new Date(start);
-    d.setDate(d.getDate() + i);
-    const isT = d.toDateString() === now.toDateString();
-    html += `<div class="sq${(map.get(dayKey(d)) ?? []).length ? ' done' : ''}${isT ? ' tod' : ''}" title="${d.toLocaleDateString('ja-JP')}"></div>`;
-  }
-  byId('streak').innerHTML = html;
 }
 
 function showCalDetail(d: number, ws: Workout[]): void {

@@ -10,6 +10,17 @@ export interface Bar {
   current?: boolean;
   /** タップしたときに出す名前（例: 「11/3 の週」） */
   title: string;
+  /** 目標に届いた（濃く塗る）。目標のあるグラフ（週の回数）で使う */
+  hit?: boolean;
+  /** 今の期間を、点線の枠で示す（current は塗りを濃くするので、目標のあるグラフでは使わない） */
+  now?: boolean;
+}
+
+export interface BarOptions {
+  /** 縦軸の上端（目盛りを整数にしたいときに指定。なければ、値の最大から決める） */
+  top?: number;
+  /** 目標の線（点線）。値がこれ以上の棒は hit にする側で決める */
+  goal?: number;
 }
 
 const W = 320;
@@ -26,10 +37,10 @@ export function niceMax(v: number): number {
 }
 
 /** 棒グラフ。format は縦軸・値の表示（例: kg → 「1.2t」）。tickCount は縦軸の区切り数 */
-export function barChart(bars: Bar[], format: (v: number) => string, tickCount = 4): string {
+export function barChart(bars: Bar[], format: (v: number) => string, tickCount = 4, opts: BarOptions = {}): string {
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
-  const top = niceMax(Math.max(0, ...bars.map(b => b.value)));
+  const top = opts.top ?? niceMax(Math.max(0, ...bars.map(b => b.value)));
   const y = (v: number): number => PAD.top + plotH - (v / top) * plotH;
   const slot = plotW / Math.max(1, bars.length);
   const barW = slot * 0.62;
@@ -46,13 +57,18 @@ export function barChart(bars: Bar[], format: (v: number) => string, tickCount =
     const label = b.label
       ? `<text class="chart-xl" x="${(x + barW / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${b.label}</text>`
       : '';
-    return `<rect class="chart-bar${b.current ? ' current' : ''}" data-i="${i}" data-title="${b.title}" data-value="${b.value}" `
+    return `<rect class="chart-bar${b.current ? ' current' : ''}${b.hit ? ' hit' : ''}${b.now ? ' now' : ''}" data-i="${i}" data-title="${b.title}" data-value="${b.value}" `
       + `x="${x.toFixed(1)}" y="${(PAD.top + plotH - h).toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2"/>${label}`;
   }).join('');
 
+  const goal = opts.goal !== undefined && opts.goal > 0 && opts.goal <= top
+    ? `<line class="chart-goal" x1="${PAD.left}" x2="${W - PAD.right}" y1="${y(opts.goal).toFixed(1)}" y2="${y(opts.goal).toFixed(1)}"/>`
+      + `<text class="chart-goal-lbl" x="${W - PAD.right}" y="${(y(opts.goal) - 3).toFixed(1)}" text-anchor="end">目標 ${format(opts.goal)}</text>`
+    : '';
+
   return `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="棒グラフ">
     <g class="chart-grid">${grid}</g>
-    ${rects}
+    ${goal}${rects}
   </svg>`;
 }
 
@@ -117,4 +133,33 @@ export function lineChart(points: LinePoint[], format: (v: number) => string, da
     <g class="chart-grid">${ticks.join('')}</g>
     ${xl}${line}${dots}
   </svg>`;
+}
+
+// ---------- ヒートマップ（草） ----------
+
+export interface HeatCellView {
+  col: number;
+  row: number;
+  /** 0〜1。0 は塗らない */
+  level: number;
+  future: boolean;
+  today: boolean;
+  /** タップしたときに出す文 */
+  title: string;
+}
+
+const HEAT_STEP = 13;
+
+/** 年間のヒートマップ。週が列、曜日が行（月曜が上）。monthLabels は、月が変わる列に出す文字 */
+export function heatmap(cells: HeatCellView[], weeks: number, monthLabels: { col: number; text: string }[]): string {
+  const top = 12;
+  const width = weeks * HEAT_STEP;
+  const height = top + 7 * HEAT_STEP;
+  const rects = cells.filter(c => !c.future).map(c => {
+    const cls = `heat${c.level > 0 ? '' : ' empty'}${c.today ? ' today' : ''}`;
+    const style = c.level > 0 ? ` style="fill-opacity:${(0.2 + 0.8 * Math.min(1, c.level)).toFixed(2)}"` : '';
+    return `<rect class="${cls}" data-title="${c.title}" data-level="${c.level.toFixed(2)}" x="${c.col * HEAT_STEP}" y="${top + c.row * HEAT_STEP}" width="11" height="11" rx="2"${style}/>`;
+  }).join('');
+  const labels = monthLabels.map(l => `<text class="chart-xl" x="${l.col * HEAT_STEP}" y="9">${l.text}</text>`).join('');
+  return `<svg class="chart-svg heat-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="年間のトレーニングの濃淡">${labels}${rects}</svg>`;
 }

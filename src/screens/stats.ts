@@ -5,6 +5,7 @@ import {
   periodSeries, recentRecords, sinceMonths, type PeriodKind,
 } from '../stats.ts';
 import { state } from '../state.ts';
+import { renderFrequency } from './frequency.ts';
 import { byId, esc } from '../ui.ts';
 
 const PERIOD_KEY = 'gym:stats-period';
@@ -169,6 +170,7 @@ export function renderStats(): void {
   renderCompare();
   renderVolumeChart();
   renderBest();
+  renderFrequency();
 
   const t = overallTotals(state.workouts);
   const tv = t.volume;

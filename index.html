@@ -86,8 +86,6 @@
   </div>
   <div id="cal-detail"></div>
   <div class="redstat-grid" id="cal-redstats"></div>
-  <div style="font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500">直近52週</div>
-  <div class="streak-grid" id="streak"></div>
 </div>
 
 <!-- HISTORY -->
@@ -153,6 +151,32 @@
     <div style="font-size:12px;color:var(--text2);margin:2px 0 6px" id="best-readout">点をタップすると、日付と重量が出ます</div>
     <div id="best-chart"></div>
     <div id="best-records"></div>
+  </div>
+
+  <!-- 頻度: 週ごとの日数（目標つき）・部位ごとの最後にやってから・年間のヒートマップ（src/screens/frequency.ts） -->
+  <div class="redstat-section-lbl">頻度</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="font-size:14px;font-weight:500">週ごとのトレーニング日数</div>
+      <div class="goal-ctl">
+        <span id="goal-text"></span>
+        <button class="btn btn-sm" data-action="goal-dec" aria-label="目標を減らす">−</button>
+        <button class="btn btn-sm" data-action="goal-inc" aria-label="目標を増やす">＋</button>
+      </div>
+    </div>
+    <div id="freq-summary" style="font-size:13px"></div>
+    <div style="font-size:12px;color:var(--text2);margin:2px 0 6px" id="freq-readout">棒をタップすると、値が出ます</div>
+    <div id="freq-chart"></div>
+  </div>
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:2px">部位ごとの、最後にやってから</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">主に使う部位でやった日で数えます（補助だけの日は数えません）。7日以上あいた部位を赤くします。</div>
+    <div id="muscle-gaps"></div>
+  </div>
+  <div class="card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:2px">年間のトレーニング</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="heat-readout">濃いほど、その日のボリュームが大きい日です</div>
+    <div id="heatmap"></div>
   </div>
 
   <div class="redstat-section-lbl">全期間の統計</div>

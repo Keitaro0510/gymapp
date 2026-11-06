@@ -169,10 +169,6 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .hist-vol { font-size: 12px; color: var(--text2); margin-top: 6px; }
 
 /* Streak */
-.streak-grid { display: flex; gap: 3px; flex-wrap: wrap; }
-.sq { width: 13px; height: 13px; border-radius: 2px; background: var(--bg3); }
-.sq.done { background: var(--accent); }
-.sq.tod { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* Detail popup */
 .detail-box { background: var(--accent-bg); border: 0.5px solid var(--accent); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 12px; }
@@ -269,3 +265,21 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .best-rec { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 0.5px solid var(--border); }
 .best-rec:last-child { border-bottom: none; }
 .best-rec .gain { color: var(--accent-text); font-weight: 700; }
+
+/* Frequency（頻度: 目標・部位ごとの最終日・ヒートマップ） */
+.goal-ctl { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); white-space: nowrap; }
+.goal-ctl .btn { padding: 4px 10px; }
+.chart-goal { stroke: var(--text2); stroke-width: 1; stroke-dasharray: 4 3; }
+.chart-goal-lbl { fill: var(--text2); font-size: 9px; }
+.chart-bar.hit { fill-opacity: 1; }
+.chart-bar.now { stroke: var(--accent); stroke-width: 1.2; stroke-dasharray: 3 2; }
+.chart-bar.now.sel, .chart-bar.sel { stroke: var(--text); stroke-dasharray: none; stroke-width: 1.4; }
+.gap-row { display: flex; justify-content: space-between; font-size: 14px; padding: 7px 0; border-bottom: 0.5px solid var(--border); }
+.gap-row:last-child { border-bottom: none; }
+.gap-row.warn { color: var(--accent-text); font-weight: 700; }
+.gap-row.none { color: var(--text2); }
+.heat-svg { cursor: default; }
+.heat { fill: var(--accent); stroke: none; cursor: pointer; }
+.heat.empty { fill: var(--bg3); }
+.heat.today { stroke: var(--text); stroke-width: 1; }
+.heat.sel { stroke: var(--text); stroke-width: 1.4; }
