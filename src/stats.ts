@@ -245,3 +245,77 @@ export function formatDiff(kind: 'count' | 'volume', cur: number, prev: number):
   }
   return cur > 0 ? 'NEW' : '±0%';
 }
+
+// ---------- 最高重量の推移（種目ごと。#16） ----------
+
+export interface BestPoint {
+  /** その日（端末の日付の0時） */
+  date: Date;
+  /** その日の、その種目の最高重量（実際に上がった重量。回数は問わない） */
+  kg: number;
+  /** その重量で、その日にいちばん多くできた回数 */
+  reps: number;
+  /** それまでの最高重量を超えた日（最初の日は、基準なので false） */
+  pr: boolean;
+}
+
+/** 種目ごとの、日ごとの最高重量（古い順）。更新の判定は、全期間の記録で行う */
+export function bestSeries(workouts: Workout[], exercise: string): BestPoint[] {
+  const byDay = new Map<string, { date: Date; kg: number; reps: number }>();
+  for (const w of workouts) {
+    const d = new Date(w.date);
+    const key = dayKey(d);
+    for (const s of w.sets) {
+      if (s.ex !== exercise) continue;
+      const cur = byDay.get(key);
+      if (!cur) byDay.set(key, { date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), kg: s.kg, reps: s.reps });
+      else if (s.kg > cur.kg) { cur.kg = s.kg; cur.reps = s.reps; }
+      else if (s.kg === cur.kg && s.reps > cur.reps) cur.reps = s.reps;
+    }
+  }
+  const days = [...byDay.values()].sort((a, b) => a.date.getTime() - b.date.getTime());
+  let max = 0;
+  return days.map((d, i) => {
+    const pr = i > 0 && d.kg > max;
+    if (d.kg > max) max = d.kg;
+    return { ...d, pr };
+  });
+}
+
+/** 記録のある種目を、トレーニングした日数の多い順に（同じなら、最初に出てきた順） */
+export function exercisesByFrequency(workouts: Workout[]): { name: string; days: number }[] {
+  const days = new Map<string, Set<string>>();
+  for (const w of workouts) {
+    const key = dayKey(new Date(w.date));
+    for (const s of w.sets) {
+      const set = days.get(s.ex);
+      if (set) set.add(key); else days.set(s.ex, new Set([key]));
+    }
+  }
+  return [...days].map(([name, set]) => ({ name, days: set.size })).sort((a, b) => b.days - a.days);
+}
+
+/** 今の最高重量を出した点（最後に更新した日。更新がなければ最初の日）。点がなければ null */
+export function currentBest(points: BestPoint[]): BestPoint | null {
+  if (!points.length) return null;
+  let best = points[0] as BestPoint;
+  for (const p of points) if (p.kg > best.kg) best = p;
+  return best;
+}
+
+/** 最高重量の更新の一覧（新しい順）と、そのときの上がり幅（kg） */
+export function recentRecords(points: BestPoint[], limit = 5): { point: BestPoint; gain: number }[] {
+  const out: { point: BestPoint; gain: number }[] = [];
+  let prev = 0;
+  for (const p of points) {
+    if (p.pr) out.push({ point: p, gain: Math.round((p.kg - prev) * 100) / 100 });
+    if (p.kg > prev) prev = p.kg;
+  }
+  return out.reverse().slice(0, limit);
+}
+
+/** 直近 months か月の点だけ（now の months か月前の同じ日以降） */
+export function sinceMonths(points: BestPoint[], now: Date, months: number): BestPoint[] {
+  const from = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
+  return points.filter(p => p.date >= from);
+}

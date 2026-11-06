@@ -10,7 +10,7 @@ import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
 import { renderLastSession } from './screens/last.ts';
 import { renderBody } from './screens/body.ts';
-import { renderStats, setStatsPeriod } from './screens/stats.ts';
+import { renderStats, setBestExercise, setBestRange, setStatsPeriod } from './screens/stats.ts';
 import { state } from './state.ts';
 import type { SupaClient } from './data.ts';
 import { initSync, resyncRemote } from './sync.ts';
@@ -45,6 +45,7 @@ const num = (el: HTMLElement, key: string): number => Number(el.dataset[key]);
 const actions: Record<string, (el: HTMLElement) => void> = {
   'tab': el => showTab(el.dataset.tab as TabName),
   'stats-period': el => setStatsPeriod(el.dataset.period === 'month' ? 'month' : 'week'),
+  'best-range': el => setBestRange(el.dataset.range === 'all' ? 'all' : '3m'),
   'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
   'save-workout': saveWorkout,
@@ -69,7 +70,11 @@ document.addEventListener('click', e => {
 });
 
 // 部位の編集で、主の部位を選んだら、同じ部位を補助から外す
-document.addEventListener('change', e => { if ((e.target as Element).id === 'mus-primary') syncMuscleChecks(); });
+document.addEventListener('change', e => {
+  const t = e.target as HTMLElement;
+  if (t.id === 'mus-primary') syncMuscleChecks();
+  if (t.id === 'best-ex') setBestExercise((t as HTMLSelectElement).value); // 最高重量の推移の種目
+});
 
 // 種目を選び直したら、その種目の前回の記録を出す
 byId('ex-sel').addEventListener('change', renderLastSession);

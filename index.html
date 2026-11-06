@@ -141,6 +141,20 @@
     <div id="vol-chart"></div>
   </div>
 
+  <!-- 最高重量の推移: 種目を選ぶと、日ごとの最高重量の折れ線グラフ。更新した日は大きな点 -->
+  <div class="card" id="best-card">
+    <div style="font-size:14px;font-weight:500;margin-bottom:8px">最高重量の推移</div>
+    <select id="best-ex"></select>
+    <div class="seg" id="best-seg" style="margin:8px 0">
+      <button class="seg-btn" data-action="best-range" data-range="3m">直近3か月</button>
+      <button class="seg-btn" data-action="best-range" data-range="all">全期間</button>
+    </div>
+    <div id="best-summary" style="font-size:13px"></div>
+    <div style="font-size:12px;color:var(--text2);margin:2px 0 6px" id="best-readout">点をタップすると、日付と重量が出ます</div>
+    <div id="best-chart"></div>
+    <div id="best-records"></div>
+  </div>
+
   <div class="redstat-section-lbl">全期間の統計</div>
   <div class="stat-grid" id="stats-top"></div>
   <div class="card">
