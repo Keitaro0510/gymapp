@@ -283,3 +283,20 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .heat.empty { fill: var(--bg3); }
 .heat.today { stroke: var(--text); stroke-width: 1; }
 .heat.sel { stroke: var(--text); stroke-width: 1.4; }
+
+/* Muscle balance（部位バランス） */
+.bal-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--bg3); margin-bottom: 6px; }
+.bal-seg { display: block; min-width: 2px; }
+.g-push { background: var(--accent); }
+.g-pull { background: var(--blue); }
+.g-legs { background: var(--amber); }
+.g-core { background: var(--text2); }
+.bal-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+.bal-key { display: inline-flex; align-items: center; gap: 4px; }
+.bal-key strong { color: var(--text); }
+.bal-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.bal-row { display: grid; grid-template-columns: 8.8em 1fr 2.8em; gap: 8px; align-items: center; font-size: 13px; padding: 3px 0; }
+.bal-row.zero { color: var(--text2); }
+.bal-track { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.bal-fill { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.bal-pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--text2); }
