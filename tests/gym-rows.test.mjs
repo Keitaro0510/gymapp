@@ -147,7 +147,7 @@ test('行から、種目の部位（主1つ＋補助）も読む。部位のな�
   r.gym_exercises[0] = { ...r.gym_exercises[0], primary_muscle: 'chest', secondary_muscles: ['delt_front', 'triceps'] };
   const infos = rowsToView(r).exerciseInfos;
   assert.deepEqual(infos.map(e => e.name), ['ベンチ', 'スクワット'], '消した種目は入らない');
-  assert.deepEqual(infos[0], { id: 'e1', name: 'ベンチ', primary: 'chest', secondary: ['delt_front', 'triceps'] });
+  assert.deepEqual(infos[0], { id: 'e1', name: 'ベンチ', primary: 'chest', secondary: ['delt_front', 'triceps'], notes: '', videoUrl: null });
   assert.deepEqual([infos[1].primary, infos[1].secondary], [null, []]);
   // 知らない値は読み捨てる（DB の check があるので、通常は来ない）
   r.gym_exercises[1] = { ...r.gym_exercises[1], primary_muscle: 'legs', secondary_muscles: ['quads', 'wing'] };

@@ -300,3 +300,16 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .bal-track { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
 .bal-fill { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
 .bal-pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--text2); }
+
+/* Exercise sheet（種目の詳細シート） */
+#ex-sheet { display: none; position: fixed; inset: 0; z-index: 250; background: rgba(0, 0, 0, 0.45); align-items: flex-end; }
+#ex-sheet.show { display: flex; }
+.sheet { background: var(--bg); width: 100%; max-height: 90%; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 16px 16px calc(var(--safe-bottom) + 16px); -webkit-overflow-scrolling: touch; }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
+.sheet-title { font-size: 18px; font-weight: 800; color: var(--accent); }
+.sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.sheet-actions .btn { text-decoration: none; }
+.sheet-hint { font-size: 12px; color: var(--text2); margin-top: 10px; line-height: 1.5; }
+.ex-open { font-size: 12px; color: var(--text2); }
+.sheet-error { color: var(--red); font-size: 13px; margin-top: 8px; }
+.sheet-error:empty { display: none; }

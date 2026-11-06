@@ -45,8 +45,8 @@ export function renderExList(): void {
     const parts = describeParts(e);
     return `
     <div class="set-row" style="flex-wrap:wrap">
-      <span style="flex:1;min-width:0">
-        <div style="font-size:14px">${esc(e.name)}</div>
+      <span style="flex:1;min-width:0;cursor:pointer" data-action="open-exercise" data-id="${esc(e.id)}">
+        <div style="font-size:14px">${esc(e.name)} <span class="ex-open">${e.notes ? '📝' : ''}${e.videoUrl ? '▶' : ''} ›</span></div>
         <div class="ex-parts${parts ? '' : ' none'}">${parts ? esc(parts) : '部位: 未設定'}</div>
       </span>
       <button class="btn btn-sm" data-action="edit-muscles" data-id="${esc(e.id)}" style="padding:4px 8px">部位</button>

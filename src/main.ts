@@ -5,6 +5,7 @@ import { ENV } from './env.ts';
 import { offerLegacyImport } from './legacy.ts';
 import { exportData, importData } from './screens/backup.ts';
 import { changeMonth, renderCal } from './screens/calendar.ts';
+import { closeSheet, openCurrentExercise, openExercise, saveDetail } from './screens/exercise-sheet.ts';
 import { addEx, cancelEditMuscles, delEx, moveEx, renderExList, renderExSelect, saveMuscles, syncMuscleChecks, toggleEditMuscles } from './screens/exercises.ts';
 import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
@@ -50,6 +51,10 @@ const actions: Record<string, (el: HTMLElement) => void> = {
   'goal-dec': () => changeGoal(-1),
   'goal-inc': () => changeGoal(1),
   'body-range': el => setBodyRange(el.dataset.range === 'week' ? 'week' : 'day'),
+  'open-exercise': el => openExercise(el.dataset.id ?? ''),
+  'open-exercise-current': openCurrentExercise,
+  'save-detail': el => saveDetail(el.dataset.id ?? ''),
+  'close-sheet': closeSheet,
   'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
   'save-workout': saveWorkout,
@@ -68,6 +73,8 @@ const actions: Record<string, (el: HTMLElement) => void> = {
 };
 
 document.addEventListener('click', e => {
+  // シートの外側（暗い部分）を押したら閉じる
+  if ((e.target as Element).id === 'ex-sheet') { closeSheet(); return; }
   const el = (e.target as Element).closest<HTMLElement>('[data-action]');
   const handler = el && actions[el.dataset.action ?? ''];
   if (el && handler) handler(el);

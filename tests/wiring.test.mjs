@@ -42,7 +42,7 @@ test('main.ts と画面が使う要素の id は、すべて index.html にあ�
   const code = [main, ...sources].join('\n');
   const used = [...code.matchAll(/(?:byId(?:<[^>]*>)?\(|renderRedStats\()'([a-z-]+)'[),]/g)].map(m => m[1]);
   assert.ok(used.length > 20);
-  // 画面を描くときに作る要素（種目の部位の編集フォーム）は、index.html にはない
-  const dynamic = new Set(['mus-primary']);
+  // 画面を描くときに作る要素（種目の部位の編集フォーム・種目の詳細シートの入力欄）は、index.html にはない
+  const dynamic = new Set(['mus-primary', 'ex-notes', 'ex-video', 'ex-error']);
   for (const id of used.filter(id => !dynamic.has(id))) assert.ok(ids.has(id), `#${id} が index.html にありません`);
 });

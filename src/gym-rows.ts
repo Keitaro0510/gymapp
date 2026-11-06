@@ -2,6 +2,7 @@
 // - 行 → 画面: rowsToView
 // - 画面の操作 → 変更の列（src/data.ts の Change）: 種目名を ID に直し、トレーニングを消すときは先にセットを消す（D23）
 import { MAX_CHANGES_PER_OP, type Change, type Row, type Rows } from './data.ts';
+import { checkNotes, normalizeVideoUrl } from './exercise-detail.ts';
 import { DEFAULT_PARTS, isMuscle, type Muscle, type Parts } from './muscles.ts';
 import type { SetEntry, StoredWorkout, Workout } from './types.ts';
 
@@ -11,6 +12,10 @@ export interface ExerciseInfo {
   name: string;
   primary: Muscle | null;
   secondary: Muscle[];
+  /** やり方・フォーム・意識することのメモ（D25）。なければ空の文字 */
+  notes: string;
+  /** 解説動画の URL（D25）。なければ null */
+  videoUrl: string | null;
 }
 
 export interface View {
@@ -61,6 +66,8 @@ export function rowsToView(rows: Rows): View {
     name: String(r.name),
     primary: isMuscle(r.primary_muscle) ? r.primary_muscle : null,
     secondary: Array.isArray(r.secondary_muscles) ? r.secondary_muscles.filter(isMuscle) : [],
+    notes: typeof r.notes === 'string' ? r.notes : '',
+    videoUrl: typeof r.video_url === 'string' && r.video_url ? r.video_url : null,
   }));
   const partsByName = new Map<string, Parts>();
   for (const r of [...exRows.filter(r => r.deleted_at), ...active]) { // 消した種目を先に入れ、消していない種目で上書きする
@@ -178,6 +185,12 @@ export function setMusclesChanges(rows: Rows, exerciseId: string, primary: Muscl
   if (bad) throw new Error(`知らない部位です: ${bad}`);
   if (primary !== null && secondary.includes(primary)) throw new Error('主の部位を、補助にも入れることはできません');
   return [{ table: 'gym_exercises', action: 'update', id: exerciseId, row: { primary_muscle: primary, secondary_muscles: [...new Set(secondary)] } }];
+}
+
+/** 種目のメモと動画のリンクを設定する（D25）。リンクは空なら未設定。http(s) 以外・長すぎるものはエラー */
+export function setDetailChanges(rows: Rows, exerciseId: string, notes: string, videoUrl: string): Change[] {
+  if (!(rows.gym_exercises || []).some(r => r.id === exerciseId)) throw new Error('その種目が見つかりません');
+  return [{ table: 'gym_exercises', action: 'update', id: exerciseId, row: { notes: checkNotes(notes), video_url: normalizeVideoUrl(videoUrl) } }];
 }
 
 /** 種目を消す（deleted_at を入れる。過去の記録は種目名を出し続ける） */

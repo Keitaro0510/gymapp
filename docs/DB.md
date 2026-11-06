@@ -23,6 +23,8 @@ erDiagram
     int position "並び順"
     text primary_muscle "主に使う部位（D24。空は未設定）"
     text[] secondary_muscles "補助の部位（D24。複数）"
+    text notes "やり方・フォーム・意識することのメモ（D25）"
+    text video_url "解説動画の URL（D25。http か https のみ）"
     timestamptz deleted_at "消した日時（空なら使用中）"
     timestamptz created_at
     timestamptz updated_at
@@ -72,6 +74,8 @@ erDiagram
 | `name` | text | `btrim(name) <> ''`。**消していない（`deleted_at` が空の）種目の中で、同じ人の名前は一意**（部分一意インデックス） |
 | `primary_muscle` | text（空可） | 主に使う部位（D24）。下の14の部位のどれか。空は未設定 |
 | `secondary_muscles` | text[]（既定 `{}`） | 補助の部位（複数）。同じく14のどれか。**主の部位は入れない** |
+| `notes` | text（既定 `''`） | やり方・フォーム・意識することのメモ（D25）。**5000文字まで** |
+| `video_url` | text（空可） | 解説動画の URL（D25）。**`http://` か `https://` で始まり、空白を含まないものだけ**（`javascript:` などは DB が断る）。2000文字まで |
 | `deleted_at` | timestamptz（空可） | 削除は行を消さず、これを入れる。過去の記録は種目名を出し続ける |
 
 - 一覧に出るのは `deleted_at is null` の種目。記録にだけ残る名前（消した種目・一覧にない名前）も、`deleted_at` 付きの行として持つ
@@ -162,6 +166,7 @@ erDiagram
 | `kg`・`reps`・`rpe`・`note` | `gym_sets` の同名の列（`rpe` は文字から数値に） |
 | 種目の一覧（名前の配列） | `gym_exercises` の `deleted_at is null`、`position` 順 |
 | 種目の部位（主1つ＋補助） | `gym_exercises.primary_muscle`・`secondary_muscles` |
+| 種目のメモ・解説動画のリンク | `gym_exercises.notes`・`video_url`（種目の詳細シート。YouTube の検索リンクは、種目名から作るので DB には持たない） |
 
 - バックアップ JSON（`{ app: "gym-tracker-backup", version: 1, … }`）の形は、今までの版と同じ。書き出すとき、行の ID は入れない
 - 取り込みのときの「同じ記録」は、日時とセットの中身（種目名・重量・回数・RPE・メモ）で見分ける。同じ記録は足さないので、何度取り込んでも二重にならない
