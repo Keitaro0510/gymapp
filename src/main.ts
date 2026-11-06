@@ -5,7 +5,8 @@ import { ENV } from './env.ts';
 import { offerLegacyImport } from './legacy.ts';
 import { exportData, importData } from './screens/backup.ts';
 import { changeMonth, renderCal } from './screens/calendar.ts';
-import { closeSheet, openCurrentExercise, openExercise, saveDetail } from './screens/exercise-sheet.ts';
+import { closeSheet, formSpeed, formToggle, formView, loadForm, openCurrentExercise, openExercise, saveDetail } from './screens/exercise-sheet.ts';
+import type { FormViewName } from './form-models.ts';
 import { addEx, cancelEditMuscles, delEx, moveEx, renderExList, renderExSelect, saveMuscles, syncMuscleChecks, toggleEditMuscles } from './screens/exercises.ts';
 import { delWorkout, renderHist } from './screens/history.ts';
 import { addSet, clearSets, removeSet, renderLogDate, renderSets, saveWorkout } from './screens/log.ts';
@@ -55,6 +56,10 @@ const actions: Record<string, (el: HTMLElement) => void> = {
   'open-exercise-current': openCurrentExercise,
   'save-detail': el => saveDetail(el.dataset.id ?? ''),
   'close-sheet': closeSheet,
+  'open-form': el => { void loadForm(el.dataset.id ?? ''); },
+  'form-toggle': formToggle,
+  'form-speed': el => formSpeed(num(el, 'speed')),
+  'form-view': el => formView(el.dataset.view as FormViewName),
   'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
   'save-workout': saveWorkout,

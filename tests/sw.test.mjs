@@ -65,3 +65,20 @@ test('index.html が参照するファイルが足りなければ公開を止め
   await writeFile(join(dir, 'index.html'), '<script type="module" src="./assets/missing.js"></script>');
   await assert.rejects(finalizeServiceWorker(dir), /assets\/missing\.js が公開するファイルにありません/);
 });
+
+test('3D のフォーム（forms/ の GLB）と、3D のビューアの JS は、先読みせず、版の指紋には入れる', async t => {
+  const dir = await fixture(t);
+  await mkdir(join(dir, 'forms'));
+  await writeFile(join(dir, 'forms/squat.glb'), 'glb');
+  await writeFile(join(dir, 'assets/form3d-xyz.js'), 'three');
+  const a = await finalizeServiceWorker(dir);
+  assert.ok(!a.assets.some(u => u.startsWith('./forms/')), 'GLB は先読みしない');
+  assert.ok(!a.assets.some(u => u.includes('form3d-')), '3D のビューアの JS は先読みしない');
+  assert.ok(a.assets.includes('./assets/index-abc.js') && a.assets.includes('./css/app.css'), 'アプリ本体は先読みする');
+  // 先読みしなくても、中身が変われば版が変わる（端末の古いキャッシュが入れ替わる）
+  const b = await fixture(t);
+  await mkdir(join(b, 'forms'));
+  await writeFile(join(b, 'forms/squat.glb'), 'glb2');
+  await writeFile(join(b, 'assets/form3d-xyz.js'), 'three');
+  assert.notEqual(a.version, (await finalizeServiceWorker(b)).version);
+});

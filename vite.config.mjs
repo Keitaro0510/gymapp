@@ -1,13 +1,13 @@
 // Vite の設定。maney-app の vite.config.mjs と同じ作り。
 // - src/main.ts（入口）には指紋付きの名前を付ける。公開する一覧はビルド後に作る（scripts/finalize-sw.mjs）
 // - index.html の css/・manifest・アイコンには vite-ignore を付け、Vite に触らせない。ビルドのあとで、そのまま出力にコピーする
-// - CSS・JavaScript を縮めない（今の版との見た目の比較で、差分を追いやすくする）
+// - JavaScript は縮める（3D の three.js が大きいため）。CSS は縮めない（そのまま出す）
 import { defineConfig } from 'vite';
 import { cpSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 // まだ Vite を通さないファイル（そのまま公開する）
-const STATIC_FILES = ['css', 'sw.js', 'manifest.json', 'icon-192.png', 'icon-512.png'];
+const STATIC_FILES = ['css', 'forms', 'sw.js', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
 function copyStaticFiles() {
   let outDir;
@@ -28,7 +28,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    minify: false,
+    minify: true,
     cssMinify: false,
     target: 'es2021',
     modulePreload: false, // Service Worker がビルドした全ファイルを先読みする

@@ -7,3 +7,6 @@ _site/
 
 # 画面の比較などの一時ファイル
 test-results/
+
+# Blender のスクリプトを動かしたときにできる、Python のキャッシュ
+__pycache__/

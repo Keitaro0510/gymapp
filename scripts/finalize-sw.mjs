@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 const CACHE_PLACEHOLDER = "const CACHE_NAME = 'gymapp-dev';";
 const ASSETS_PATTERN = /const ASSETS = \[[\s\S]*?\];/g;
+// 先読みしない（使うときに読み込んで、そのときにキャッシュする）: フォームの 3D（GLB）と、3D のビューアの JS（three.js を含む。大きい）
+const LAZY = /^(forms\/|assets\/form3d-)/;
 
 async function filesUnder(root, dir = root) {
   const files = [];
@@ -44,7 +46,7 @@ export async function finalizeServiceWorker(outDir) {
   for (const file of required) {
     if (!available.has(file)) throw new Error(`sw.js の ASSETS にある ${file} が公開するファイルにありません`);
   }
-  const assetUrls = ['./', ...files.map(file => `./${file}`)];
+  const assetUrls = ['./', ...files.filter(file => !LAZY.test(file)).map(file => `./${file}`)];
   const manifest = `const ASSETS = ${JSON.stringify(assetUrls, null, 2)};`;
 
   // 名前・中身・Service Worker の元を含める。同じ成果物なら同じ版になる。
