@@ -313,3 +313,15 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .ex-open { font-size: 12px; color: var(--text2); }
 .sheet-error { color: var(--red); font-size: 13px; margin-top: 8px; }
 .sheet-error:empty { display: none; }
+
+/* タイマー（記録画面） */
+.timer-card { display: flex; gap: 12px; }
+.timer-box { flex: 1; min-width: 0; padding: 8px; border-radius: var(--radius); }
+.timer-big { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 2px 0 6px; }
+.timer-ctrl { display: flex; gap: 6px; }
+.timer-ctrl select { flex: 1; min-width: 0; }
+#timer-rest-box.running .timer-big { color: var(--accent); }
+#timer-rest-box.done { background: var(--accent-bg); animation: timer-blink 0.8s ease-in-out infinite; }
+#timer-rest-box.done .timer-big { color: var(--accent-text); }
+@keyframes timer-blink { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { #timer-rest-box.done { animation: none; } }

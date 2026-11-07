@@ -5,6 +5,7 @@ import { commit, newId } from '../sync.ts';
 import { byId, esc, toast } from '../ui.ts';
 import { renderBody } from './body.ts';
 import { renderLastSession } from './last.ts';
+import { onSetAdded, resetTimer } from './timer.ts';
 
 export function renderLogDate(): void {
   byId('log-date').textContent = state.now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
@@ -21,6 +22,7 @@ export function addSet(): void {
   byId<HTMLInputElement>('w-rpe').value = '';
   byId<HTMLTextAreaElement>('w-note').value = '';
   renderSets();
+  onSetAdded();
 }
 
 export function renderSets(): void {
@@ -49,12 +51,14 @@ export function renderSets(): void {
 
 export function removeSet(i: number): void {
   state.sets.splice(i, 1);
+  if (!state.sets.length) resetTimer();
   renderSets();
 }
 
 export function clearSets(): void {
   if (state.sets.length && !confirm('今日の記録をクリアしますか？')) return;
   state.sets = [];
+  resetTimer();
   renderSets();
 }
 
@@ -63,6 +67,7 @@ export function saveWorkout(): void {
   // 保存できなければ、入力中のセットは残す
   if (!commit(rows => saveWorkoutChanges(rows, state.sets, new Date(), newId))) return;
   state.sets = [];
+  resetTimer();
   renderSets();
   renderLastSession(); // 今保存した記録が、次の「前回」になる
   renderBody(); // 今日の負荷（人体図）にも反映する
