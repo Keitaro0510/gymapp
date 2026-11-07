@@ -7,3 +7,6 @@ _site/
 
 # 画面の比較などの一時ファイル
 test-results/
+
+# Python のキャッシュ（Blender のスクリプトを動かしたときにできる）
+__pycache__/
