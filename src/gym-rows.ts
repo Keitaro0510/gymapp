@@ -52,6 +52,7 @@ export function rowsToView(rows: Rows): View {
     .map((w): StoredWorkout => ({
       id: w.id,
       date: new Date(String(w.performed_at)).toISOString(),
+      durationSec: durationValue(w.duration_sec),
       sets: (setsOf.get(w.id) || []).sort(byPosition).map((s): SetEntry => ({
         ex: nameOf.get(String(s.exercise_id)) ?? '（不明な種目）',
         kg: num(s.kg),
@@ -139,15 +140,23 @@ function nextPosition(list: Row[] | undefined): number {
 
 // ---------- 画面の操作 → 変更の列 ----------
 
-/** 今日の記録を保存する（トレーニング1回とそのセット） */
-export function saveWorkoutChanges(rows: Rows, sets: SetEntry[], at: Date, newId: () => string): Change[] {
+/** 所要時間（秒）として使える値なら整数で返す。0〜86400（DB の check と同じ）以外・数でないものは null（未計測） */
+export function durationValue(v: unknown): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 && n <= 86400 ? Math.round(n) : null;
+}
+
+/** 今日の記録を保存する（トレーニング1回とそのセット）。durationSec は所要時間（秒。測っていなければ null） */
+export function saveWorkoutChanges(rows: Rows, sets: SetEntry[], at: Date, newId: () => string, durationSec: number | null = null): Change[] {
   sets.forEach(assertSet);
   const res = exerciseBook(rows, newId, at.toISOString());
   const exIds = sets.map(s => res.idFor(s.ex));
   const workoutId = newId();
+  const duration = durationValue(durationSec);
   return [
     ...res.changes,
-    { table: 'gym_workouts', action: 'insert', id: workoutId, row: { performed_at: at.toISOString(), date: jstDate(at), note: '', position: nextPosition(rows.gym_workouts) } },
+    { table: 'gym_workouts', action: 'insert', id: workoutId, row: { performed_at: at.toISOString(), date: jstDate(at), note: '', position: nextPosition(rows.gym_workouts), ...(duration === null ? {} : { duration_sec: duration }) } },
     ...sets.map((s, i): Change => ({
       table: 'gym_sets', action: 'insert', id: newId(),
       row: { workout_id: workoutId, exercise_id: exIds[i], kg: s.kg, reps: s.reps, rpe: rpeValue(s.rpe), note: s.note, position: i },
@@ -248,8 +257,9 @@ export function importChanges(
   const groups = workouts.map((w, wi): Change[] => {
     const workoutId = newId();
     const when = new Date(w.date);
+    const duration = durationValue(w.durationSec);
     return [
-      { table: 'gym_workouts', action: 'insert', id: workoutId, row: { performed_at: when.toISOString(), date: jstDate(when), note: '', position: wPosition + wi } },
+      { table: 'gym_workouts', action: 'insert', id: workoutId, row: { performed_at: when.toISOString(), date: jstDate(when), note: '', position: wPosition + wi, ...(duration === null ? {} : { duration_sec: duration }) } },
       ...w.sets.map((s, i): Change => ({
         table: 'gym_sets', action: 'insert', id: newId(),
         row: { workout_id: workoutId, exercise_id: res.idFor(s.ex), kg: Number(s.kg), reps: Number(s.reps), rpe: rpeValue(s.rpe), note: s.note ?? '', position: i },

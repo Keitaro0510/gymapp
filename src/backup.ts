@@ -7,7 +7,8 @@ export function buildBackup(workouts: Workout[], exercises: string[], now: Date)
     app: 'gym-tracker-backup',
     version: 1,
     exportedAt: now.toISOString(),
-    workouts: workouts.map(w => ({ date: w.date, sets: w.sets })),
+    // 所要時間は、測ったものだけ入れる（無いものは今までの形のまま）
+    workouts: workouts.map(w => (w.durationSec == null ? { date: w.date, sets: w.sets } : { date: w.date, sets: w.sets, durationSec: w.durationSec })),
     exercises,
   };
 }

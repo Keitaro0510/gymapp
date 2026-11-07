@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  rowsToView, jstDate, rpeValue, assertSet, saveWorkoutChanges, deleteWorkoutChanges,
+  rowsToView, jstDate, rpeValue, assertSet, saveWorkoutChanges, deleteWorkoutChanges, durationValue,
   addExerciseChanges, deleteExerciseChanges, moveExerciseChanges, workoutKey, newWorkouts, importChanges, setMusclesChanges,
 } from '../src/gym-rows.ts';
 import { applyChanges, checkChanges, MAX_CHANGES_PER_OP } from '../src/data.ts';
@@ -176,4 +176,31 @@ test('種目を足すとき、標準の割り当てがある名前なら部位�
   // 消した種目を戻すときは、前の部位のまま（上書きしない）
   const back = addExerciseChanges(rows(), '昔の種目', newId);
   assert.deepEqual(back[0].row, { deleted_at: null, position: 3 });
+});
+
+test('所要時間: 0〜86400 の数だけ使い、それ以外は未計測（null）。D26', () => {
+  assert.equal(durationValue(3600), 3600);
+  assert.equal(durationValue('90'), 90);
+  assert.equal(durationValue(0), 0, '0 は未計測ではない');
+  assert.equal(durationValue(59.6), 60);
+  for (const bad of [null, undefined, '', -1, 86401, NaN, 'abc']) assert.equal(durationValue(bad), null, String(bad));
+});
+
+test('保存: 所要時間を gym_workouts.duration_sec に入れる。測っていなければ列を送らない', () => {
+  const at = new Date('2026-11-05T15:30:00Z');
+  const withDur = saveWorkoutChanges(rows(), [set('ベンチ', 60, 10)], at, newId, 1800);
+  assert.equal(withDur[0].row.duration_sec, 1800);
+  const without = saveWorkoutChanges(rows(), [set('ベンチ', 60, 10)], at, newId);
+  assert.ok(!('duration_sec' in without[0].row), '列を足す前の DB にも送れる形のまま');
+  // 画面の形に戻すと、所要時間が出る。無い記録は null
+  const v = rowsToView(applyChanges(rows(), withDur, 'now'));
+  assert.equal(v.workouts[0].durationSec, 1800);
+});
+
+test('取り込み: バックアップの所要時間を引き継ぐ', () => {
+  const w = (date, durationSec) => ({ date, sets: [set('ベンチ', 60, 10)], ...(durationSec === undefined ? {} : { durationSec }) });
+  const ops = importChanges(rows(), [w('2026-11-01T00:00:00Z', 1200), w('2026-11-02T00:00:00Z')], null, new Date(), newId);
+  const wk = ops.flat().filter(c => c.table === 'gym_workouts');
+  assert.equal(wk[0].row.duration_sec, 1200);
+  assert.ok(!('duration_sec' in wk[1].row));
 });

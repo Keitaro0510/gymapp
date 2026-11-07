@@ -3,6 +3,7 @@ import { groupByExercise, volume } from '../stats.ts';
 import { deleteWorkoutChanges } from '../gym-rows.ts';
 import { state } from '../state.ts';
 import { commit } from '../sync.ts';
+import { formatClock } from '../timer-core.ts';
 import { byId, esc } from '../ui.ts';
 
 export function renderHist(): void {
@@ -24,7 +25,7 @@ export function renderHist(): void {
           <div style="font-size:14px;font-weight:500">${esc(ex)}</div>
           <div style="font-size:13px;color:var(--text2)">${ss.map(s => `${s.kg}kg×${s.reps}`).join(' · ')}</div>
         </div>`).join('')}
-      <div class="hist-vol">総ボリューム: <strong>${volume(w).toLocaleString()} kg</strong> · ${w.sets.length}セット</div>
+      <div class="hist-vol">総ボリューム: <strong>${volume(w).toLocaleString()} kg</strong> · ${w.sets.length}セット${w.durationSec == null ? '' : ` · ⏱ ${formatClock(w.durationSec * 1000)}`}</div>
     </div>`;
   }).join('');
 }
