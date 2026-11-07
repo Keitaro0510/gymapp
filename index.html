@@ -58,6 +58,28 @@
     </div>
   </div>
 
+  <!-- タイマー: 経過時間と、セット間のレスト（src/screens/timer.ts）。セットを追加するとレストが自動で始まる -->
+  <div class="card timer-card">
+    <div class="timer-box">
+      <div class="lbl">経過時間</div>
+      <div class="timer-big" id="timer-elapsed">0:00</div>
+    </div>
+    <div class="timer-box" id="timer-rest-box">
+      <div class="lbl">レスト</div>
+      <div class="timer-big" id="timer-rest">1:30</div>
+      <div class="timer-ctrl">
+        <select id="timer-rest-sec" aria-label="レストの長さ">
+          <option value="60">60秒</option>
+          <option value="90">90秒</option>
+          <option value="120">2分</option>
+          <option value="180">3分</option>
+          <option value="300">5分</option>
+        </select>
+        <button class="btn btn-sm" id="timer-rest-btn" data-action="toggle-rest">開始</button>
+      </div>
+    </div>
+  </div>
+
   <div id="sets-area"></div>
 
   <div style="display:flex;gap:8px;margin-top:4px">

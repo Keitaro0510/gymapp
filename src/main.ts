@@ -13,6 +13,7 @@ import { renderLastSession } from './screens/last.ts';
 import { renderBody, setBodyRange } from './screens/body.ts';
 import { changeGoal } from './screens/frequency.ts';
 import { renderStats, setBestExercise, setBestRange, setStatsPeriod } from './screens/stats.ts';
+import { initTimer, setRestDuration, toggleRest } from './screens/timer.ts';
 import { state } from './state.ts';
 import type { SupaClient } from './data.ts';
 import { initSync, resyncRemote } from './sync.ts';
@@ -57,6 +58,7 @@ const actions: Record<string, (el: HTMLElement) => void> = {
   'close-sheet': closeSheet,
   'login': () => { void loginWithGoogle(); },
   'add-set': addSet,
+  'toggle-rest': toggleRest,
   'save-workout': saveWorkout,
   'clear-sets': clearSets,
   'rm-set': el => removeSet(num(el, 'index')),
@@ -84,6 +86,7 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => {
   const t = e.target as HTMLElement;
   if (t.id === 'mus-primary') syncMuscleChecks();
+  if (t.id === 'timer-rest-sec') setRestDuration((t as HTMLSelectElement).value);
   if (t.id === 'best-ex') setBestExercise((t as HTMLSelectElement).value); // 最高重量の推移の種目
 });
 
@@ -131,6 +134,7 @@ window.addEventListener('online', () => { void resyncRemote(); });
 
 // ── 初期表示 ──
 renderLogDate();
+initTimer();
 renderExSelect();
 renderExList();
 updateSyncStatus();
