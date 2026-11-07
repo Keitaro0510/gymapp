@@ -91,6 +91,11 @@ export function onSetAdded(): void {
   ensureTicker();
 }
 
+/** 経過時間（秒）。最初のセットを追加していなければ null。保存のとき、所要時間として DB に送る */
+export function elapsedSec(): number | null {
+  return sessionStart === null ? null : Math.round((Date.now() - sessionStart) / 1000);
+}
+
 /** 保存・クリア・最後のセットを消したとき: 経過時間とレストを戻す */
 export function resetTimer(): void {
   sessionStart = null;

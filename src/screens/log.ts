@@ -5,7 +5,7 @@ import { commit, newId } from '../sync.ts';
 import { byId, esc, toast } from '../ui.ts';
 import { renderBody } from './body.ts';
 import { renderLastSession } from './last.ts';
-import { onSetAdded, resetTimer } from './timer.ts';
+import { elapsedSec, onSetAdded, resetTimer } from './timer.ts';
 
 export function renderLogDate(): void {
   byId('log-date').textContent = state.now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
@@ -65,7 +65,7 @@ export function clearSets(): void {
 export function saveWorkout(): void {
   if (!state.sets.length) { toast('セットを追加してください'); return; }
   // 保存できなければ、入力中のセットは残す
-  if (!commit(rows => saveWorkoutChanges(rows, state.sets, new Date(), newId))) return;
+  if (!commit(rows => saveWorkoutChanges(rows, state.sets, new Date(), newId, elapsedSec()))) return;
   state.sets = [];
   resetTimer();
   renderSets();

@@ -15,6 +15,8 @@ export interface SetEntry {
 export interface Workout {
   date: string;
   sets: SetEntry[];
+  /** 所要時間（秒）。測っていない記録（今までのもの）は無い（D26） */
+  durationSec?: number | null;
 }
 
 /** DB から読んだトレーニング（画面が使う形）。id は gym_workouts の行の id */

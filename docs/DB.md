@@ -33,6 +33,7 @@ erDiagram
     uuid id PK
     uuid user_id FK
     timestamptz performed_at "記録した日時"
+    int duration_sec "所要時間（秒）（D26。0〜86400。空は未計測）"
     date date "日本時間の日"
     text note
     int position
@@ -102,6 +103,7 @@ erDiagram
 |---|---|---|
 | `performed_at` | timestamptz | 記録した（保存した）日時 |
 | `date` | date | 端末の日付（**日本時間**）の日。カレンダー・連携で日付を使うために、`performed_at` とは別に持つ |
+| `duration_sec` | integer（空可） | 所要時間（秒）（D26）。最初のセットを追加してから保存するまで。**0〜86400 の整数だけ**。空は未計測（今までの記録） |
 | `note` | text（既定 `''`） | メモ（今のアプリでは使っていない） |
 
 ### `gym_sets`（1 セット）
