@@ -112,3 +112,4 @@ gym_sets       (id, workout_id → gym_workouts, exercise_id → gym_exercises,
 - **フォームの 3D アニメーションは、保留にする**（#24）。理由: 読み込みが重くなる（3D の JS が約 590KB）。やり方の確認は、**YouTube のリンク**（#23）で行う。作りかけは、PR #26（ブランチ `feat/form-3d`。Blender のスクリプト `tools/blender/`・スクワットの GLB・three.js の表示。数値の確認とブラウザの確認は済み、動画との見比べと iPhone 実機は未）に残してある。再開するときは、そこから
 - Blender は、別の道具（Codex の画像生成など）も試してみる予定（ユーザー）
 - **次は、文章のフィードバック（#8）に、AI を入れる**。無料の道を探す（Gemini の無料枠は、送った内容が Google の製品改善に使われる。ブラウザの LLM は iPhone で動くか未確認。詳しくは #8）
+  - **候補（未決定。2026-11-24）**: Claude のスケジュールタスクと maney-app の MCP を使えば、追加料金なし・API キーなしで AI を使える。作るもの・決めることは maney-app の [docs/AI_CANDIDATES.md](https://github.com/Keitaro0510/maney-app/blob/main/docs/AI_CANDIDATES.md) の案2
