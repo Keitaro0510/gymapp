@@ -26,4 +26,4 @@ npm run build      # dist/ にビルドする
 
 ## これから
 
-姉妹アプリ [maney-app](https://github.com/Keitaro0510/maney-app)（家計・予定・タスク）と、あとで連携する（カレンダーにトレーニングの日、今週の回数、ジム代の1回あたり）。方針と進める順番は [docs/PLAN.md](docs/PLAN.md)。
+姉妹アプリ [maney-app](https://github.com/Keitaro0510/maney-app)（家計・予定・タスク）とは、DB とログインを共有するが、画面はつながない（2026-11-24 に連携をやめた。maney-app の D43）。方針と進める順番は [docs/PLAN.md](docs/PLAN.md)。
